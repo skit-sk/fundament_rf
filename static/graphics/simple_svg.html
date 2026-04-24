@@ -1,0 +1,18 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>SVG Simple Chart</title>
+    <style> body { font-family: sans-serif; padding: 16px; } </style>
+  </head>
+  <body>
+    <h2>Простой SVG график</h2>
+    <svg width="600" height="300" role="img" aria-label="Sample line chart">
+      <!-- оси -->
+      <line x1="40" y1="260" x2="560" y2="260" stroke="#ccc"/>
+      <line x1="40" y1="20" x2="40" y2="260" stroke="#ccc"/>
+      <!-- данные -->
+      <polyline fill="none" stroke="steelblue" stroke-width="2" points="40,240 120,170 200,180 280,120 360,140 440,90 520,60" />
+    </svg>
+  </body>
+  </html>

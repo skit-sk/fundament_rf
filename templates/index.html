@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Главная - Fundament RF{% endblock %}
+
+{% block content %}
+<h2>Объекты</h2>
+
+<div class="add-form">
+    <details>
+        <summary class="add-btn">+ ADD CARD</summary>
+        <form method="post" action="{{ url_for('api.create_from_emoji') }}">
+            <textarea name="emoji_data" placeholder="" rows="3" style="width:100%; box-sizing:border-box;"></textarea>
+            <button type="submit">Создать</button>
+        </form>
+    </details>
+</div>
+
+{% if objects %}
+<ul class="object-list">
+{% for obj in objects %}
+    <li style="position:relative; display:flex; flex-direction:column; gap:2px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+            <div style="flex:1; text-align:center; order:2;">
+                <a href="{{ url_for('web.card', obj_id=obj.id) }}" style="font-size:15px; font-weight:bold; text-decoration:none; color:inherit;">{{ obj.name }}</a>
+            </div>
+            <a href="{{ url_for('web.delete_object', obj_id=obj.id) }}" class="delete-btn" onclick="return confirm('Удалить?')" style="order:3;">×</a>
+        </div>
+        {% if obj.data %}
+        <div class="emoji-summary" style="font-size:12px; color:#555; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:center;">
+            🏗️ {{ obj.data.get('number', '—') }}
+            🚏{{ obj.data.get('symbol', '—') }}
+            🧾{{ obj.data.get('entry_price', '—') }}
+            📆{{ obj.data.get('entry_date', '—') }}
+            🕒{{ obj.data.get('entry_time', '—') }} дн
+            🧱{{ obj.data.get('volume', '—') }}
+            🫧{{ obj.data.get('pnl_usdt', '—') }}
+            {% if obj.data.get('pnl_percent', 0) >= 0 %}📈{{ obj.data.get('pnl_percent', '—') }}{% else %}📉{{ obj.data.get('pnl_percent', '—') }}{% endif %}
+            📦{{ obj.data.get('result', '—') }}
+        </div>
+        {% if obj.data.get('chart_max_usdt') is not none %}
+        <div style="font-size:11px; color:#888; text-align:center;">
+            Mx: +{{ obj.data.get('chart_max_usdt') }} USDT (+{{ obj.data.get('chart_max_pct') }}%) | Mn: {{ obj.data.get('chart_min_usdt') }} USDT ({{ obj.data.get('chart_min_pct') }}%)
+        </div>
+        {% endif %}
+        {% endif %}
+    </li>
+{% endfor %}
+</ul>
+{% else %}
+<p>Объектов пока нет.</p>
+{% endif %}
+
+<div class="version-history" style="margin: 2rem 0 0; padding: 0.75rem; border: 1px solid #e5e5e5; background:#f9fbff; border-radius:6px;">
+  <strong>История изменений</strong>
+  <ul style="margin:0.5rem 0 0 1.2rem; padding:0;">
+    <li>v0.4.0 — 2026-04-24 01:10: График отклонения цены в каждой карточке; история внизу</li>
+    <li>v0.3.0 — 2026-04-23 18:40: Добавлен единый раздел графиков на одной странице</li>
+    <li>v0.2.0 — 2026-04-22 16:00: Улучшена навигация на главной</li>
+    <li>v0.1.0 — 2026-04-21 12:00: Начальная версия раздела графиков</li>
+  </ul>
+</div>
+{% endblock %}

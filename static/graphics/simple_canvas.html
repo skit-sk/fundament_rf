@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Canvas Simple Chart</title>
+    <style> body { font-family: sans-serif; padding: 16px; } canvas { border: 1px solid #ccc; } </style>
+  </head>
+  <body>
+    <h2>График на Canvas</h2>
+    <canvas id="cg" width="600" height="300" aria-label="Sample canvas chart"></canvas>
+    <script>
+      const c = document.getElementById('cg');
+      const ctx = c.getContext('2d');
+      const w = c.width, h = c.height;
+      const data = [60, 120, 90, 150, 110, 180, 140];
+      ctx.strokeStyle = '#3b82f6';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      data.forEach((v, i) => {
+        const x = 40 + i * ((w - 60) / (data.length - 1));
+        const y = h - 20 - v;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+    </script>
+  </body>
+  </html>
