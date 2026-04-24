@@ -21,9 +21,27 @@ def calc_deviation(entry_price, current_price):
     return round(diff, 6), round(pct, 4)
 
 
-@bp.route('/graphics')
-def index():
-    return render_template('graphics/index.html')
+from flask import Blueprint, render_template, jsonify
+from storage import JSONStorage
+import ccxt
+from datetime import datetime, timedelta
+
+bp = Blueprint('graphics', __name__, template_folder='../templates')
+import os as _os
+_storage = None
+
+def _get_storage():
+    global _storage
+    if _storage is None:
+        _storage = JSONStorage(data_dir=_os.path.join(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))), 'data'))
+    return _storage
+
+
+@bp.route('/graphics/all')
+def all_charts():
+    storage = _get_storage()
+    objects = storage.list()
+    return render_template('graphics/all.html', objects=objects)
 
 
 @bp.route('/graphics/chart/<obj_id>')

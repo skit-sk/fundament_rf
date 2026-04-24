@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Все графики — Fundament RF</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script>
+    if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  </script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; padding: 1rem; color: var(--text-main); background: var(--bg-body); }
+    nav { display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; padding:0.5rem; border-bottom:1px solid var(--border-color); }
+    nav ul { list-style:none; display:flex; gap:1rem; margin:0; padding:0; }
+    nav a { color:var(--link-color); text-decoration:none; }
+    nav a:hover { text-decoration:underline; }
+    h1 { font-size:1.5rem; margin:0; }
+    .charts-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(450px, 1fr)); gap:1.5rem; }
+    .chart-card { border:1px solid var(--border-color); border-radius:8px; padding:1rem; background:var(--bg-card); box-shadow:0 1px 3px var(--shadow); }
+    .chart-card h2 { font-size:1.1rem; margin:0 0 0.5rem; }
+    .chart-card canvas { width:100%; height:200px; background:var(--bg-card); }
+    .chart-summary { font-size:12px; color:var(--text-muted); margin-top:0.5rem; }
+    .emoji-summary { font-size:10px; color:var(--text-muted); margin-bottom:0.3rem; width:100%; display:flex; justify-content:space-between; }
+    .emoji-summary a { color:var(--link-color); text-decoration:none; }
+    .chart-header { font-size:11px; color:var(--text-muted); margin-bottom:0.3rem; }
+    .chart-summary { font-size:10px; color:var(--text-muted); margin-bottom:0.3rem; width:100%; display:flex; justify-content:space-between; }
+    .loader { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text-muted); }
+    .spinner { display:inline-block; width:14px; height:14px; border:2px solid var(--border-color); border-top-color:#1e88e5; border-radius:50%; animation:spin 0.8s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <nav style="display:flex; justify-content:space-between; align-items:center;">
+    <ul>
+      <li><a href="/">🏠 Главная</a></li>
+      <li><a href="/graphics/all">📈 Все графики</a></li>
+    </ul>
+    <button onclick="toggleTheme()" style="background:var(--bg-card); border:1px solid var(--border-color); color:var(--text-main); padding:4px 8px; border-radius:4px; cursor:pointer;">🌙</button>
+  </nav>
+
+  <h1>Все графики</h1>
+  <p style="margin-bottom:1rem; color:var(--text-muted);">Отклонение цены от входа по всем сделкам</p>
+  
+  <div class="charts-grid" id="chartsGrid">
+    {% for obj in objects %}
+    {% if obj.data and obj.data.get('symbol') and obj.data.get('entry_price') and obj.data.get('entry_date') %}
+    <div class="chart-card" data-id="{{ obj.id }}" data-symbol="{{ obj.data.symbol }}" data-entry-price="{{ obj.data.entry_price }}" data-entry-date="{{ obj.data.entry_date }}">
+      <h2><a href="/card/{{ obj.id }}" style="color:var(--link-color); text-decoration:none;">{{ obj.name }}</a></h2>
+      <div class="emoji-summary">
+        <a href="/card/{{ obj.id }}">🏗️{{ obj.data.get('number', '—') }} 🚏{{ obj.data.symbol }} 🧾{{ obj.data.entry_price }} 📆{{ obj.data.entry_date }} 🕒{{ obj.data.entry_time }}дн 🧱{{ obj.data.volume }} 🫧{{ obj.data.pnl_usdt }} {% if obj.data.pnl_percent >= 0 %}📈{{ obj.data.pnl_percent }}{% else %}📉{{ obj.data.pnl_percent }}{% endif %} 📦{{ obj.data.result }}</a>
+      </div>
+      <div class="loader" data-started="true"><span class="spinner"></span> Загрузка... <span class="load-time">0</span> мс</div>
+      <div class="chart-header"></div>
+      <div class="chart-summary" style="color:var(--text-muted); font-size:11px;"></div>
+      <canvas width="400" height="220"></canvas>
+    </div>
+    {% endif %}
+    {% endfor %}
+  </div>
+
+  <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isDark = html.getAttribute('data-theme') === 'dark';
+      if (isDark) {
+        html.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'light');
+      } else {
+        html.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+      }
+    }
+
+    const cards = document.querySelectorAll('.chart-card');
+    
+    async function fetchChart(objId) {
+      const start = performance.now();
+      try {
+        const res = await fetch('/graphics/chart/' + objId);
+        const ms = Math.round(performance.now() - start);
+        const json = await res.json();
+        json.loadTime = ms;
+        return json;
+      } catch(e) {
+        return { error: e.message, loadTime: Math.round(performance.now() - start) };
+      }
+    }
+
+    function drawChart(ctx, data) {
+      if (!data || data.error || !data.chart) return;
+      
+      const W = ctx.canvas.width, H = ctx.canvas.height;
+      const pad = { l: 40, r: 50, t: 15, b: 30 };
+      const w = W - pad.l - pad.r;
+      const h = H - pad.t - pad.b;
+
+      const ys = data.chart.map(d => d.deviation_percent);
+      const minY = Math.min(0, ...ys);
+      const maxY = Math.max(0, ...ys);
+      const rangeY = maxY - minY || 1;
+      const yZero = pad.t + h * (maxY / rangeY);
+      const entry_price = data.chart[0]?.close || 0;
+
+      ctx.clearRect(0, 0, W, H);
+      
+      ctx.strokeStyle = '#aaa';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(pad.l, yZero); ctx.lineTo(pad.l + w, yZero);
+      ctx.stroke();
+
+      const steps = 5;
+      for (let i = 0; i <= steps; i++) {
+        const pct = minY + (rangeY / steps) * i;
+        const y = pad.t + h - (i / steps) * h;
+        const price = entry_price * (1 + pct / 100);
+        ctx.strokeStyle = '#aaa';
+        ctx.lineWidth = 0.5;
+        ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + w, y); ctx.stroke();
+        ctx.fillStyle = '#aaa';
+        ctx.font = '8px sans-serif';
+        ctx.fillText(pct.toFixed(1)+'%', 2, y + 3);
+        ctx.fillText(price.toFixed(4), pad.l + w + 5, y + 3);
+      }
+
+      ctx.setLineDash([3, 2]);
+      ctx.strokeStyle = '#aa66ee';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(pad.l, yZero); ctx.lineTo(pad.l + w, yZero);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.lineWidth = 1.5;
+      data.chart.forEach((d, i) => {
+        const x = pad.l + (i / (data.chart.length - 1 || 1)) * w;
+        const y = pad.t + h - ((d.deviation_percent - minY) / rangeY) * h;
+        if (i > 0) {
+          const px = pad.l + ((i-1)/(data.chart.length-1||1))*w;
+          const py = pad.t + h - ((data.chart[i-1].deviation_percent - minY) / rangeY) * h;
+          ctx.strokeStyle = d.profitable ? '#16a34a' : '#dc2626';
+          ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(x, y); ctx.stroke();
+        }
+        ctx.fillStyle = d.profitable ? '#16a34a' : '#dc2626';
+        ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI*2); ctx.fill();
+      });
+
+      ctx.fillStyle = '#aaa';
+      ctx.font = '8px sans-serif';
+      const step = Math.max(1, Math.ceil(data.chart.length / 8));
+      data.chart.forEach((d, i) => {
+        if (i % step === 0 || i === data.chart.length - 1) {
+          const x = pad.l + (i / (data.chart.length - 1 || 1)) * w;
+          ctx.save();
+          ctx.translate(x, pad.t + h + 10);
+          ctx.rotate(-Math.PI / 6);
+          ctx.fillText(d.date, 0, 0);
+          ctx.restore();
+        }
+      });
+    }
+
+    async function init() {
+      for (const card of cards) {
+        const id = card.dataset.id;
+        const canvas = card.querySelector('canvas');
+        const loader = card.querySelector('.loader');
+        const timeSpan = loader.querySelector('.load-time');
+        const spinner = loader.querySelector('.spinner');
+        const start = performance.now();
+        
+        const timer = setInterval(() => {
+          if (loader.dataset.started === 'true') {
+            timeSpan.textContent = Math.round(performance.now() - start);
+          }
+        }, 50);
+        
+        const json = await fetchChart(id);
+        clearInterval(timer);
+        
+        if (json.error) {
+          loader.dataset.started = 'false';
+          spinner.style.display = 'none';
+          loader.innerHTML = '<span style="color:#c00;">Ошибка: ' + json.error + '</span>';
+          continue;
+        }
+        
+        const ctx = canvas.getContext('2d');
+        drawChart(ctx, json);
+        
+        const s = json.summary;
+        const negDays = json.chart.filter(d => d.deviation_percent < 0).length;
+        const posDays = json.chart.filter(d => d.deviation_percent > 0).length;
+        loader.dataset.started = 'false';
+        spinner.style.display = 'none';
+        loader.textContent = 'Загружено за ' + json.loadTime + ' мс';
+        
+        const headerEl = card.querySelector('.chart-header');
+        const sign = n => (n >= 0 ? '+' : '') + n;
+        headerEl.innerHTML = '<span style="font-weight:bold;">' + s.symbol + '</span> Entry: <b>' + s.entry_price + '</b> (' + s.entry_date + ') Current: <b>' + s.current_price + '</b> Deviation: <span style="color:' + (s.profitable ? '#16a34a' : '#dc2626') + ';font-weight:bold;">' + sign(s.total_deviation_usdt) + ' USDT (' + sign(s.total_deviation_percent) + '%)</span>';
+        
+        const summaryEl = card.querySelector('.chart-summary');
+        const entryDate = new Date(s.entry_date);
+        const today = new Date();
+        const daysAll = Math.floor((today - entryDate) / (1000 * 60 * 60 * 24));
+        summaryEl.innerHTML = '<span style="color:#16a34a;">Dp+(' + posDays + ')</span> <span style="color:#16a34a;">Max: +' + s.max_usdt + ' USDT (' + s.max_pct + '%)</span> <span style="color:#dc2626;">Dn-(' + negDays + ')</span> <span style="color:#dc2626;">Min: ' + s.min_usdt + ' USDT (' + s.min_pct + '%)</span> <span>Da(' + daysAll + ')</span>';
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

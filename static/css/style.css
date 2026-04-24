@@ -4,21 +4,51 @@
     box-sizing: border-box;
 }
 
+:root {
+    --bg-body: #f5f5f5;
+    --bg-card: #ffffff;
+    --bg-header: #2c3e50;
+    --text-main: #333333;
+    --text-muted: #666666;
+    --text-header: #ffffff;
+    --link-color: #3498db;
+    --border-color: #e0e0e0;
+    --shadow: rgba(0,0,0,0.1);
+    --input-bg: #ffffff;
+    --btn-bg: #3498db;
+    --emoji-bg: #f0f4ff;
+}
+
+html[data-theme="dark"] {
+    --bg-body: #1a1a1a;
+    --bg-card: #2d2d2d;
+    --bg-header: #1a1a1a;
+    --text-main: #e0e0e0;
+    --text-muted: #888888;
+    --text-header: #e0e0e0;
+    --link-color: #64b5f6;
+    --border-color: #404040;
+    --shadow: rgba(0,0,0,0.3);
+    --input-bg: #333333;
+    --btn-bg: #1976d2;
+    --emoji-bg: #2a3a4a;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     line-height: 1.6;
-    color: #333;
-    background: #f5f5f5;
+    color: var(--text-main);
+    background: var(--bg-body);
 }
 
 header {
-    background: #2c3e50;
-    color: white;
+    background: var(--bg-header);
+    color: var(--text-header);
     padding: 1rem 2rem;
 }
 
 header h1 a {
-    color: white;
+    color: var(--text-header);
     text-decoration: none;
 }
 
@@ -28,72 +58,141 @@ main {
     padding: 0 1rem;
 }
 
+.theme-toggle {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
 .object-list {
     list-style: none;
 }
 
 .object-list li {
-    background: white;
+    background: var(--bg-card);
     padding: 1rem;
     margin-bottom: 0.5rem;
     border-radius: 4px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 3px var(--shadow);
 }
 
 .object-list a {
-    color: #3498db;
+    color: var(--link-color);
     text-decoration: none;
     font-weight: bold;
 }
 
 .obj-type {
     background: #ecf0f1;
-    padding: 0.2rem 0.5rem;
+    color: #555;
+    padding: 2px 6px;
     border-radius: 3px;
-    font-size: 0.85em;
-    margin-left: 0.5rem;
+    font-size: 12px;
+    margin-left: 8px;
+}
+
+[data-theme="dark"] .obj-type {
+    background: #404040;
+    color: #aaa;
 }
 
 .obj-date {
-    color: #7f8c8d;
-    font-size: 0.85em;
-    float: right;
+    color: #999;
+    font-size: 12px;
+    margin-left: 8px;
+}
+
+.delete-btn {
+    color: #e74c3c;
+    font-weight: bold;
+    text-decoration: none;
+    margin-left: 8px;
+}
+
+.add-form {
+    background: var(--bg-card);
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 3px var(--shadow);
+}
+
+.add-btn {
+    cursor: pointer;
+    color: var(--link-color);
+    font-weight: bold;
+}
+
+.add-form textarea {
+    width: 100%;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--input-bg);
+    color: var(--text-main);
+}
+
+.add-form button {
+    margin-top: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--btn-bg);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
 .card {
-    background: white;
+    background: var(--bg-card);
     padding: 2rem;
-    border-radius: 4px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px var(--shadow);
 }
 
 .card h2 {
     margin-bottom: 1rem;
-    color: #2c3e50;
 }
 
-.card h3 {
-    margin-top: 1.5rem;
-    margin-bottom: 0.5rem;
-    color: #2c3e50;
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
 }
 
-.card p {
-    margin-bottom: 0.5rem;
+.data-table td, .data-table th {
+    border: 1px solid var(--border-color);
+    padding: 6px 8px;
+    text-align: center;
 }
 
-.data-list {
-    background: #f9f9f9;
-    padding: 1rem;
-    border-radius: 4px;
+.version-history {
+    background: var(--emoji-bg);
+    border: 1px solid var(--border-color);
+    padding: 0.75rem;
+    border-radius: 6px;
 }
 
-.data-list dt {
-    font-weight: bold;
-    color: #2c3e50;
+a {
+    color: var(--link-color);
 }
 
-.data-list dd {
-    margin-left: 1rem;
-    margin-bottom: 0.5rem;
+canvas {
+    background: var(--bg-card);
+}
+
+#chartSummary, #chartError {
+    color: var(--text-muted);
+}
+
+.emoji-summary {
+    background: var(--emoji-bg);
+}
+
+.graphics-link {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
 }

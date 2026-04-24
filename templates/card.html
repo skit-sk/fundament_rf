@@ -3,11 +3,11 @@
 {% block title %}{{ obj.name }} - Fundament RF{% endblock %}
 
 {% block content %}
-<div class="card">
+<div class="card" style="max-width:100%; overflow:hidden; padding:0.5rem;">
     <h2>{{ obj.name }}</h2>
 
     {% if obj.data %}
-    <div class="emoji-summary" style="margin-bottom:1rem; padding:0.5rem; background:#f0f4ff; border-radius:6px; font-size:14px; white-space:nowrap; overflow-x:auto;">
+    <div class="emoji-summary" style="margin-bottom:0.5rem; padding:0.2rem; background:var(--emoji-bg); border-radius:6px; font-size:10px; white-space:nowrap; overflow-x:auto;">
         🏗️ {{ obj.data.get('number', '—') }}
         🚏{{ obj.data.get('symbol', '—') }}
         🧾{{ obj.data.get('entry_price', '—') }}
@@ -19,20 +19,21 @@
         📦{{ obj.data.get('result', '—') }}
     </div>
 
-<table class="data-table" style="width:100%; border-collapse:collapse; margin-bottom:1rem; font-size:12px;">
+<table class="data-table" style="width:100%; border-collapse:collapse; margin-bottom:0.5rem; font-size:8px; background:var(--bg-card); table-layout:fixed;">
+        {% set main_keys = ['number', 'symbol', 'entry_price', 'entry_date', 'entry_time', 'volume', 'pnl_percent', 'pnl_usdt', 'result'] %}
         <tr>
-            {% for key, value in obj.data.items() %}
-            <td style="padding:4px 6px; text-align:center;">{% if key == 'number' %}🏗️{% elif key == 'symbol' %}🚏{% elif key == 'entry_price' %}🧾{% elif key == 'entry_date' %}📆{% elif key == 'entry_time' %}🕒{% elif key == 'volume' %}🧱{% elif key == 'pnl_percent' %}📈{% elif key == 'pnl_usdt' %}🫧{% elif key == 'result' %}📦{% elif key == 'status' %}{% else %}•{% endif %}</td>
+            {% for key, value in obj.data.items() if key in main_keys %}
+            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">{% if key == 'number' %}🏗️{% elif key == 'symbol' %}🚏{% elif key == 'entry_price' %}🧾{% elif key == 'entry_date' %}📆{% elif key == 'entry_time' %}🕒{% elif key == 'volume' %}🧱{% elif key == 'pnl_percent' %}📈{% elif key == 'pnl_usdt' %}🫧{% elif key == 'result' %}📦{% else %}•{% endif %}</td>
             {% endfor %}
         </tr>
         <tr>
-            {% for key, value in obj.data.items() %}
-            <td style="padding:4px 6px; font-weight:bold; color:#555; text-align:center;">{% if key == 'status' %}{% else %}{% if key == 'pnl_percent' %}pnl_usdt{% elif key == 'pnl_usdt' %}pnl_percent{% else %}{{ key }}{% endif %}{% endif %}</td>
+            {% for key, value in obj.data.items() if key in main_keys %}
+            <td style="padding:1px 2px; font-weight:bold; color:var(--text-muted); text-align:center; white-space:nowrap;">{% if key == 'pnl_percent' %}pnl_usdt{% elif key == 'pnl_usdt' %}pnl_percent{% else %}{{ key }}{% endif %}</td>
             {% endfor %}
         </tr>
         <tr>
-            {% for key, value in obj.data.items() %}
-            <td style="padding:4px 6px; text-align:center;">{% if key == 'status' %}{% else %}{{ value }}{% endif %}</td>
+            {% for key, value in obj.data.items() if key in main_keys %}
+            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">{{ value }}</td>
             {% endfor %}
         </tr>
     </table>
@@ -43,18 +44,23 @@
     {% if obj.data and obj.data.get('symbol') and obj.data.get('entry_price') and obj.data.get('entry_date') %}
     <div id="chartContainer" style="margin-top:1rem;">
         <h3>График отклонения цены</h3>
-        <div id="chartLoader" style="display:flex; align-items:center; gap:8px; margin-bottom:0.5rem; font-size:14px; color:#555;">
-            <span id="loaderSpinner" style="display:inline-block; width:16px; height:16px; border:2px solid #ddd; border-top-color:#1e88e5; border-radius:50%; animation:spin 0.8s linear infinite;"></span>
+        <div id="chartLoader" style="display:flex; align-items:center; gap:8px; margin-bottom:0.5rem; font-size:14px; color:var(--text-muted);">
+            <span id="loaderSpinner" style="display:inline-block; width:16px; height:16px; border:2px solid var(--border-color); border-top-color:#1e88e5; border-radius:50%; animation:spin 0.8s linear infinite;"></span>
             <span>Загрузка данных… <span id="loaderTimer">0</span> мс</span>
         </div>
-        <div id="chartSummary" style="margin-bottom:0.5rem; font-size:14px; color:#555;"></div>
-        <canvas id="chart" width="600" height="300" style="border:1px solid #e5e5e5; border-radius:6px; background:#fff;"></canvas>
+        <div id="chartSummary" style="margin-bottom:0.5rem; font-size:14px; color:var(--text-muted);"></div>
+        <canvas id="chart" width="600" height="300" style="border:1px solid var(--border-color); border-radius:6px; background:var(--bg-card);"></canvas>
         <div id="chartError" style="display:none; color:#c00; margin-top:0.5rem;"></div>
     </div>
     {% endif %}
 </div>
 
 <style>
+@media (max-width: 600px) {
+    .data-table { font-size:10px !important; }
+    .data-table td { padding:2px 3px !important; }
+    #chart { width:100% !important; height:auto !important; max-width:100vw; }
+}
 @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 
@@ -65,7 +71,7 @@
     const canvas = document.getElementById('chart');
     const ctx = canvas.getContext('2d');
     const W = canvas.width, H = canvas.height;
-    const pad = { l:55, r:15, t:15, b:40 };
+    const pad = { l:55, r:50, t:15, b:40 };
     const w = W - pad.l - pad.r;
     const h = H - pad.t - pad.b;
 
@@ -75,40 +81,39 @@
         const minY = Math.min(...ys);
         const maxY = Math.max(...ys);
         const rangeY = maxY - minY || 1;
+        const entry_price = data[0]?.close || 0;
 
-        ctx.strokeStyle = '#ddd';
-        ctx.lineWidth = 1;
-        const yZero = pad.t + h * (maxY / rangeY);
-        ctx.beginPath();
-        ctx.moveTo(pad.l, yZero);
-        ctx.lineTo(pad.l + w, yZero);
-        ctx.stroke();
+ctx.strokeStyle = '#aaa';
+ctx.lineWidth = 1;
+const yZero = pad.t + h * (maxY / rangeY);
+ctx.beginPath();
+ctx.moveTo(pad.l, yZero); ctx.lineTo(pad.l + w, yZero);
+ctx.stroke();
 
-        const steps = 5;
-        for (let i = 0; i <= steps; i++) {
-            const pct = minY + (rangeY / steps) * i;
-            const y = pad.t + h - (i / steps) * h;
-            ctx.strokeStyle = '#eee';
-            ctx.beginPath();
-            ctx.moveTo(pad.l, y);
-            ctx.lineTo(pad.l + w, y);
-            ctx.stroke();
-            ctx.fillStyle = '#555';
-            ctx.font = '11px sans-serif';
-            ctx.fillText(pct.toFixed(2) + '%', 2, y + 3);
-        }
+const steps = 5;
+for (let i = 0; i <= steps; i++) {
+    const pct = minY + (rangeY / steps) * i;
+    const y = pad.t + h - (i / steps) * h;
+    const price = entry_price * (1 + pct / 100);
+    ctx.strokeStyle = '#eee';
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + w, y); ctx.stroke();
+    ctx.fillStyle = '#aaa';
+    ctx.font = '9px sans-serif';
+    ctx.fillText(pct.toFixed(2) + '%', 2, y + 3);
+    ctx.fillText(price.toFixed(4), pad.l + w + 5, y + 3);
+}
 
-        ctx.setLineDash([4, 3]);
-        ctx.strokeStyle = '#9333ea';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(pad.l, yZero);
-        ctx.lineTo(pad.l + w, yZero);
-        ctx.stroke();
-        ctx.setLineDash([]);
-        ctx.fillStyle = '#9333ea';
-        ctx.font = '10px sans-serif';
-        ctx.fillText('Entry: 0%', pad.l + 4, yZero - 4);
+ctx.setLineDash([4, 3]);
+ctx.strokeStyle = '#9333ea';
+ctx.lineWidth = 1.5;
+ctx.beginPath();
+ctx.moveTo(pad.l, yZero);
+ctx.lineTo(pad.l + w, yZero);
+ctx.stroke();
+ctx.setLineDash([]);
+ctx.fillStyle = '#aa66ee';
+ctx.font = '9px sans-serif';
+ctx.fillText('Entry: 0%', pad.l + 4, yZero - 4);
 
         ctx.lineWidth = 2;
         data.forEach((d, i) => {
@@ -129,7 +134,7 @@
             ctx.fill();
         });
 
-        ctx.fillStyle = '#555';
+        ctx.fillStyle = '#aaa';
         ctx.font = '11px sans-serif';
         const step = Math.max(1, Math.ceil(data.length / 10));
         data.forEach((d, i) => {
@@ -166,22 +171,25 @@
             }
             const s = json.summary;
             const sign = n => (n >= 0 ? '+' : '') + n;
-            document.getElementById('chartSummary').innerHTML =
-                '<span style="font-weight:bold;">' + s.symbol + '</span> — ' +
-                'Entry: <b>' + s.entry_price + '</b> (' + s.entry_date + ') | ' +
-                'Current: <b>' + s.current_price + '</b> | ' +
-                'Deviation: <span style="color:' + (s.profitable ? '#16a34a' : '#dc2626') + ';font-weight:bold;">' +
-                sign(s.total_deviation_usdt) + ' USDT (' + sign(s.total_deviation_percent) + '%)</span>';
+            const summaryDiv = document.createElement('div');
+            summaryDiv.style.cssText = 'overflow-x:auto; white-space:nowrap; font-size:10px; color:#888;';
+            summaryDiv.innerHTML = '<b>' + s.symbol + '</b> Entry:' + s.entry_price + '(' + s.entry_date + ') Current:' + s.current_price + ' Deviation:<b style="color:' + (s.profitable ? '#16a34a' : '#dc2626') + ';">' + sign(s.total_deviation_usdt) + ' USDT (' + sign(s.total_deviation_percent) + '%)</b>';
+            document.getElementById('chartSummary').appendChild(summaryDiv);
 
-            const first = json.chart[0], last = json.chart[json.chart.length - 1];
-            const summaryLine = document.createElement('div');
-            summaryLine.style.cssText = 'margin-top:0.3rem; font-size:13px; color:#888;';
-            summaryLine.textContent = 'Данные: ' + first.date + ' → ' + last.date + ' | Точек: ' + json.chart.length;
+        const first = json.chart[0], last = json.chart[json.chart.length - 1];
+        const summaryLine = document.createElement('div');
+        summaryLine.style.cssText = 'margin-top:0.1rem; font-size:10px; color:#999;';
+        summaryLine.textContent = 'Data: ' + first.date + ' → ' + last.date + ' Points: ' + json.chart.length;
             document.getElementById('chartSummary').appendChild(summaryLine);
 
             const maxLine = document.createElement('div');
-            maxLine.style.cssText = 'margin-top:0.2rem; font-size:13px; color:#16a34a;';
-            maxLine.textContent = 'Mx: +' + s.max_usdt + ' USDT (+' + s.max_pct + '%) | Mn: ' + s.min_usdt + ' USDT (' + s.min_pct + '%)';
+            maxLine.style.cssText = 'margin-top:0.1rem; font-size:10px; white-space:nowrap; overflow-x:auto;';
+            const negDays = json.chart.filter(d => d.deviation_percent < 0).length;
+            const posDays = json.chart.filter(d => d.deviation_percent > 0).length;
+            const entryDate = new Date(s.entry_date);
+            const today = new Date();
+            const daysAll = Math.floor((today - entryDate) / (1000 * 60 * 60 * 24));
+            maxLine.innerHTML = '<span style="color:#16a34a;">Dp+(' + posDays + ')</span> <span style="color:#16a34a;">Max: +' + s.max_usdt + ' USDT (' + s.max_pct + '%)</span> <span style="color:#dc2626;">Dn-(' + negDays + ')</span> <span style="color:#dc2626;">Min: ' + s.min_usdt + ' USDT (' + s.min_pct + '%)</span> <span>Da(' + daysAll + ')</span>';
             document.getElementById('chartSummary').appendChild(maxLine);
 
             drawChart(json.chart);
