@@ -12,25 +12,25 @@
     {% set stats = obj.data.get('stats', {}) %}
 
     {% if obj.data %}
-    <div class="emoji-summary" style="margin-bottom:0.5rem; padding:0.2rem; background:var(--emoji-bg); border-radius:6px; font-size:10px; white-space:nowrap; overflow-x:auto;">
-        🏗️{{ entry.get('number', '—') }}
-        🚏{{ entry.get('symbol', '—') }}
-        🧾{{ entry.get('entry_price', '—') }}
-        📆{{ entry.get('entry_date', '—') }}
-        🕒{{ entry.get('entry_time', '—') }} дн
-        🧱{{ entry.get('volume', '—') }}
-        🫧{{ entry.get('pnl_percent', '—') }}
-        🪙{{ entry.get('pnl_usdt', '—') }}
-        📦 📉{{ entry.get('result', '—') }}
-        ⬆️{{ obj.data.get('leverage', 10) }}
+    <div class="emoji-summary" style="margin-bottom:0.5rem; padding:0.25rem; background:var(--emoji-bg); border-radius:6px; font-size:9px; display:flex; flex-wrap:nowrap; gap:3px; justify-content:flex-start; align-items:center; overflow-x:auto; min-width:0;">
+        <span style="min-width:18px;">🏗️{{ entry.get('number', '—') }}</span>
+        <span style="min-width:28px;">🚏{{ entry.get('symbol', '—') }}</span>
+        <span style="min-width:50px;">🧾{{ entry.get('entry_price', '—') }}</span>
+        <span style="min-width:55px;">📆{{ entry.get('entry_date', '—') }}</span>
+        <span style="min-width:28px;">🕒{{ entry.get('entry_time', '—') }}дн</span>
+        <span style="min-width:30px;">🧱{{ entry.get('volume', '—') }}</span>
+        <span style="min-width:40px;">🫧{{ entry.get('pnl_percent', '—') }}</span>
+        <span style="min-width:40px;">🪙{{ entry.get('pnl_usdt', '—') }}</span>
+        <span style="min-width:22px;">📦📉{{ entry.get('result', '—') }}</span>
+        <span style="min-width:22px;">⬆️{{ obj.data.get('leverage', 10) }}</span>
     </div>
 
     {% if upd and upd.get('entry_price') %}
-    <div class="emoji-summary" style="margin-bottom:0.5rem; padding:0.2rem; background:var(--emoji-bg); border-radius:6px; font-size:10px; white-space:nowrap; overflow-x:auto;">
-        🫧{{ upd.get('pnl_percent', '—') }}
-        🪙{{ upd.get('pnl_usdt', '—') }}
-        🧾{{ upd.get('entry_price', '—') }}
-        🕒{{ upd.get('entry_time', '—') }} дн
+    <div class="emoji-summary" style="margin-bottom:0.5rem; padding:0.25rem; background:var(--emoji-bg); border-radius:6px; font-size:9px; display:flex; flex-wrap:nowrap; gap:3px; justify-content:flex-start; align-items:center; overflow-x:auto; min-width:0;">
+        <span style="min-width:40px;">🫧{{ upd.get('pnl_percent', '—') }}</span>
+        <span style="min-width:40px;">🪙{{ upd.get('pnl_usdt', '—') }}</span>
+        <span style="min-width:50px;">🧾{{ upd.get('entry_price', '—') }}</span>
+        <span style="min-width:28px;">🕒{{ upd.get('entry_time', '—') }}дн</span>
     </div>
     {% endif %}
 
@@ -99,6 +99,12 @@
     .data-table { font-size:10px !important; }
     .data-table td { padding:2px 3px !important; }
     #chart { width:100% !important; height:auto !important; max-width:100vw; }
+    .emoji-summary { font-size:8px !important; gap:2px !important; padding:0.2rem !important; }
+    .emoji-summary span { min-width:15px !important; }
+}
+@media (max-width: 400px) {
+    .emoji-summary { font-size:7px !important; gap:1px !important; }
+    .emoji-summary span { min-width:12px !important; }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 </style>
