@@ -13,10 +13,13 @@ def index():
 
 @bp.route('/obj/<obj_id>')
 def get_object(obj_id):
+    print(f"[DEBUG] Loading object: {obj_id}")
     try:
         obj = storage.load(obj_id)
     except FileNotFoundError:
+        print(f"[DEBUG] Object not found: {obj_id}")
         abort(404)
+    print(f"[DEBUG] Rendering card for: {obj.name}")
     return render_template('card.html', obj=obj)
 
 

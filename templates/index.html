@@ -8,31 +8,52 @@
 {% if objects %}
 <ul class="object-list">
 {% for obj in objects %}
+    {% set entry = obj.data.get('emoji_entry', {}) %}
+    {% set upd = obj.data.get('emoji_upd', {}) %}
     <li style="position:relative; display:flex; flex-direction:column; gap:2px; background:var(--bg-card); padding:1rem; border-radius:4px; margin-bottom:0.5rem; box-shadow:0 1px 3px var(--shadow);">
         <a href="{{ url_for('web.card', obj_id=obj.id) }}" style="position:absolute; inset:0; z-index:1;"></a>
         <div style="display:flex; align-items:center; justify-content:space-between; width:100%; position:relative; z-index:2;">
             <div style="flex:1; text-align:center; order:2;">
                 <span style="font-size:15px; font-weight:bold; color:var(--link-color);">{{ obj.name }}</span>
+                <span style="font-size:11px; color:#888; margin-left:8px;">x{{ obj.data.get('leverage', 10) }}</span>
             </div>
             <a href="{{ url_for('web.delete_object', obj_id=obj.id) }}" class="delete-btn" onclick="return confirm('Удалить?')" style="order:3;">×</a>
         </div>
-        {% if obj.data %}
+        
+        {% if entry %}
         <div class="emoji-summary" style="font-size:9px; color:var(--text-muted); white-space:nowrap; text-align:center; display:flex; justify-content:center; gap:2px; width:100%;">
-            🏗️ {{ obj.data.get('number', '—') }}
-            🚏{{ obj.data.get('symbol', '—') }}
-            🧾{{ obj.data.get('entry_price', '—') }}
-            📆{{ obj.data.get('entry_date', '—') }}
-            🕒{{ obj.data.get('entry_time', '—') }} дн
-            🧱{{ obj.data.get('volume', '—') }}
-            🫧{{ obj.data.get('pnl_usdt', '—') }}
-            {% if obj.data.get('pnl_percent', 0) >= 0 %}📈{{ obj.data.get('pnl_percent', '—') }}{% else %}📉{{ obj.data.get('pnl_percent', '—') }}{% endif %}
-            📦{{ obj.data.get('result', '—') }}
+            🏗️{{ entry.get('number', '—') }}
+            🚏{{ entry.get('symbol', '—') }}
+            🧾{{ entry.get('entry_price', '—') }}
+            📆{{ entry.get('entry_date', '—') }}
+            🕒{{ entry.get('entry_time', '—') }} дн
+            🧱{{ entry.get('volume', '—') }}
+            🫧{{ entry.get('pnl_percent', '—') }}
+            {% if entry.get('pnl_percent', 0) >= 0 %}📈{{ entry.get('pnl_usdt', '—') }}{% else %}📉{{ entry.get('pnl_usdt', '—') }}{% endif %}
+            📦{{ entry.get('result', '—') }}
+            ⬆️{{ obj.data.get('leverage', 10) }}
         </div>
-        {% if obj.data.get('chart_max_usdt') is not none %}
-        <div style="font-size:11px; color:var(--text-muted); text-align:center;">
-            Mx: +{{ obj.data.get('chart_max_usdt') }} USDT (+{{ obj.data.get('chart_max_pct') }}%) | Mn: {{ obj.data.get('chart_min_usdt') }} USDT ({{ obj.data.get('chart_min_pct') }}%)
+        
+        {% if upd and upd.get('current_price') %}
+        <div class="emoji-summary" style="font-size:9px; color:var(--text-muted); white-space:nowrap; text-align:center; display:flex; justify-content:center; gap:2px; width:100%;">
+            🏗️{{ entry.get('number', '—') }}
+            🚏{{ entry.get('symbol', '—') }}
+            🧾{{ upd.get('current_price', '—') }}
+            📆{{ entry.get('entry_date', '—') }}
+            🕒{{ upd.get('entry_time', '—') }} дн
+            🧱{{ entry.get('volume', '—') }}
+            🫧{{ upd.get('pnl_percent', '—') }}
+            {% if upd.get('pnl_percent', 0) >= 0 %}📈{{ upd.get('pnl_usdt', '—') }}{% else %}📉{{ upd.get('pnl_usdt', '—') }}{% endif %}
+            {% if upd.get('pnl_percent', 0) >= 0 %}📦🟢{% else %}📦🔴{% endif %}
+            ⬆️{{ obj.data.get('leverage', 10) }}
         </div>
         {% endif %}
+        
+        {% set created = obj.created_at|string %}
+        {% set updated = obj.updated_at|string %}
+        <div style="font-size:8px; color:#666; text-align:center;">
+            entry: {{ entry.get('entry_date', '') }} → add: {{ created[:10] }} | upd: {{ updated[:10] }}
+        </div>
         {% endif %}
     </li>
 {% endfor %}

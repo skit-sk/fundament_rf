@@ -6,42 +6,81 @@
 <div class="card" style="max-width:100%; overflow:hidden; padding:0.5rem;">
     <h2>{{ obj.name }}</h2>
 
+    {% set entry = obj.data.get('emoji_entry', {}) %}
+    {% set upd = obj.data.get('emoji_upd', {}) %}
+    {% set ohlc = obj.data.get('ohlc', {}) %}
+    {% set stats = obj.data.get('stats', {}) %}
+
     {% if obj.data %}
     <div class="emoji-summary" style="margin-bottom:0.5rem; padding:0.2rem; background:var(--emoji-bg); border-radius:6px; font-size:10px; white-space:nowrap; overflow-x:auto;">
-        🏗️ {{ obj.data.get('number', '—') }}
-        🚏{{ obj.data.get('symbol', '—') }}
-        🧾{{ obj.data.get('entry_price', '—') }}
-        📆{{ obj.data.get('entry_date', '—') }}
-        🕒{{ obj.data.get('entry_time', '—') }} дн
-        🧱{{ obj.data.get('volume', '—') }}
-        🫧{{ obj.data.get('pnl_usdt', '—') }}
-        {% if obj.data.get('pnl_percent', 0) >= 0 %}📈{{ obj.data.get('pnl_percent', '—') }}{% else %}📉{{ obj.data.get('pnl_percent', '—') }}{% endif %}
-        📦{{ obj.data.get('result', '—') }}
+        🏗️{{ entry.get('number', '—') }}
+        🚏{{ entry.get('symbol', '—') }}
+        🧾{{ entry.get('entry_price', '—') }}
+        📆{{ entry.get('entry_date', '—') }}
+        🕒{{ entry.get('entry_time', '—') }} дн
+        🧱{{ entry.get('volume', '—') }}
+        🫧{{ entry.get('pnl_percent', '—') }}
+        {% if entry.get('pnl_percent', 0) >= 0 %}📈{{ entry.get('pnl_usdt', '—') }}{% else %}📉{{ entry.get('pnl_usdt', '—') }}{% endif %}
+        📦{{ entry.get('result', '—') }}
+        ⬆️{{ obj.data.get('leverage', 10) }}
     </div>
 
-<table class="data-table" style="width:100%; border-collapse:collapse; margin-bottom:0.5rem; font-size:8px; background:var(--bg-card); table-layout:fixed;">
-        {% set main_keys = ['number', 'symbol', 'entry_price', 'entry_date', 'entry_time', 'volume', 'pnl_percent', 'pnl_usdt', 'result'] %}
+    {% if upd and upd.get('entry_price') %}
+    <div class="emoji-summary" style="margin-bottom:0.5rem; padding:0.2rem; background:var(--emoji-bg); border-radius:6px; font-size:10px; white-space:nowrap; overflow-x:auto;">
+        🫧{{ upd.get('pnl_percent', '—') }}
+        {% if upd.get('pnl_percent', 0) >= 0 %}📈{{ upd.get('pnl_usdt', '—') }}{% else %}📉{{ upd.get('pnl_usdt', '—') }}{% endif %}
+        🧾{{ upd.get('entry_price', '—') }}
+        🕒{{ upd.get('entry_time', '—') }} дн
+    </div>
+    {% endif %}
+
+    <div style="font-size:9px; color:var(--text-muted); text-align:center; margin-bottom:0.5rem;">
+        <span>{{ obj.data.get('created_at', '')[:19] }}</span>
+        <span> → </span>
+        <span>{{ obj.data.get('updated_at', '')[:19] }}</span>
+    </div>
+
+    {% if entry %}
+    <table class="data-table" style="width:100%; border-collapse:collapse; margin-bottom:0.5rem; font-size:8px; background:var(--bg-card); table-layout:fixed;">
+        {% set main_keys = ['number', 'symbol', 'entry_price', 'entry_date', 'entry_time', 'volume', 'pnl_percent', 'pnl_usdt', 'result', 'leverage'] %}
         <tr>
-            {% for key, value in obj.data.items() if key in main_keys %}
-            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">{% if key == 'number' %}🏗️{% elif key == 'symbol' %}🚏{% elif key == 'entry_price' %}🧾{% elif key == 'entry_date' %}📆{% elif key == 'entry_time' %}🕒{% elif key == 'volume' %}🧱{% elif key == 'pnl_percent' %}📈{% elif key == 'pnl_usdt' %}🫧{% elif key == 'result' %}📦{% else %}•{% endif %}</td>
-            {% endfor %}
+            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">🏗️</td>
+            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">🚏</td>
+            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">🧾</td>
+            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">📆</td>
+            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">🕒</td>
+            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">🧱</td>
+<td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">pnl_usdt</td>
+            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">pnl_percent</td>
+            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">result</td>
+            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">leverage</td>
         </tr>
         <tr>
-            {% for key, value in obj.data.items() if key in main_keys %}
-            <td style="padding:1px 2px; font-weight:bold; color:var(--text-muted); text-align:center; white-space:nowrap;">{% if key == 'pnl_percent' %}pnl_usdt{% elif key == 'pnl_usdt' %}pnl_percent{% else %}{{ key }}{% endif %}</td>
-            {% endfor %}
+            <td style="padding:1px 2px; font-weight:bold; color:var(--text-muted); text-align:center; white-space:nowrap;">pnl_usdt</td>
+            <td style="padding:1px 2px; font-weight:bold; color:var(--text-muted); text-align:center; white-space:nowrap;">pnl_percent</td>
+            <td style="padding:1px 2px; font-weight:bold; color:var(--text-muted); text-align:center; white-space:nowrap;">result</td>
+            <td style="padding:1px 2px; font-weight:bold; color:var(--text-muted); text-align:center; white-space:nowrap;">leverage</td>
+        </tr>
+<tr>
+            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">pnl_usdt</td>
+            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">pnl_percent</td>
+            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">result</td>
+            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">leverage</td>
         </tr>
         <tr>
-            {% for key, value in obj.data.items() if key in main_keys %}
-            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">{{ value }}</td>
-            {% endfor %}
+            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">{{ entry.get('pnl_usdt', '') }}</td>
+            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">{{ entry.get('pnl_percent', '') }}</td>
+            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">{{ entry.get('result', '') }}</td>
+            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">{{ obj.data.get('leverage', 10) }}</td>
         </tr>
     </table>
+    {% endif %}
+
     {% else %}
     <p>Нет данных.</p>
     {% endif %}
 
-    {% if obj.data and obj.data.get('symbol') and obj.data.get('entry_price') and obj.data.get('entry_date') %}
+    {% if entry and entry.get('symbol') and entry.get('entry_price') and entry.get('entry_date') %}
     <div id="chartContainer" style="margin-top:1rem;">
         <h3>График отклонения цены</h3>
         <div id="chartLoader" style="display:flex; align-items:center; gap:8px; margin-bottom:0.5rem; font-size:14px; color:var(--text-muted);">
@@ -191,6 +230,26 @@ ctx.fillText('Entry: 0%', pad.l + 4, yZero - 4);
             const daysAll = Math.floor((today - entryDate) / (1000 * 60 * 60 * 24));
             maxLine.innerHTML = '<span style="color:#16a34a;">Dp+(' + posDays + ')</span> <span style="color:#16a34a;">Max: +' + s.max_usdt + ' USDT (' + s.max_pct + '%)</span> <span style="color:#dc2626;">Dn-(' + negDays + ')</span> <span style="color:#dc2626;">Min: ' + s.min_usdt + ' USDT (' + s.min_pct + '%)</span> <span>Da(' + daysAll + ')</span>';
             document.getElementById('chartSummary').appendChild(maxLine);
+
+            if (json.ohlc) {
+                const ohlcDiv = document.createElement('div');
+                ohlcDiv.style.cssText = 'margin-top:0.2rem; padding:0.2rem; background:var(--emoji-bg); border-radius:6px; font-size:10px; white-space:nowrap; overflow-x:auto;';
+                const cur = json.ohlc.current;
+                ohlcDiv.innerHTML = '<span style="color:#888;">Тело:</span> ' + cur.body + ' (' + cur.body_pct + '%) <span style="color:#888;">Верх фитиль:</span> ' + cur.upper_wick + ' <span style="color:#888;">Низ фитиль:</span> ' + cur.lower_wick + ' <span style="color:#888;">Волатильность:</span> ' + json.ohlc.max.volatility;
+                document.getElementById('chartSummary').appendChild(ohlcDiv);
+
+                const priceDiv = document.createElement('div');
+                priceDiv.style.cssText = 'margin-top:0.2rem; padding:0.2rem; background:var(--emoji-bg); border-radius:6px; font-size:10px; white-space:nowrap; overflow-x:auto;';
+                priceDiv.innerHTML = '<span style="color:#16a34a;">Max: ' + json.ohlc.max.price + ' (' + json.ohlc.max.pct + '%, x' + json.ohlc.max.pct_x + ')</span> <span style="color:#dc2626;">Min: ' + json.ohlc.min.price + ' (' + json.ohlc.min.pct + '%, x' + json.ohlc.min.pct_x + ')</span>';
+                document.getElementById('chartSummary').appendChild(priceDiv);
+            }
+
+            if (json.stats) {
+                const statsDiv = document.createElement('div');
+                statsDiv.style.cssText = 'margin-top:0.2rem; padding:0.2rem; background:var(--emoji-bg); border-radius:6px; font-size:10px; white-space:nowrap; overflow-x:auto;';
+                statsDiv.innerHTML = '<span style="color:#dc2626;">Dn(' + json.stats.dn + ')</span> <span style="color:#16a34a;">Dp(' + json.stats.dp + ')</span> <span>Da(' + json.stats.da + ')</span>';
+                document.getElementById('chartSummary').appendChild(statsDiv);
+            }
 
             drawChart(json.chart);
         } catch(e) {

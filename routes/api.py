@@ -30,10 +30,10 @@ def parse_emoji_data(text: str) -> dict:
     m = re.search(r'🧱\s*([\d.]+)', text)
     if m: data['volume'] = float(m.group(1))
 
-    m = re.search(r'[📈📉]\s*([-\d.]+)', text)
+    m = re.search(r'🫧\s*([-\d.]+)', text)
     if m: data['pnl_percent'] = float(m.group(1))
 
-    m = re.search(r'🫧\s*([-\d.]+)', text)
+    m = re.search(r'[📈📉]\s*([-\d.]+)', text)
     if m: data['pnl_usdt'] = float(m.group(1))
 
     m = re.search(r'📦 ([🟢🔴])', text)
@@ -41,7 +41,14 @@ def parse_emoji_data(text: str) -> dict:
         data['result'] = m.group(1)
         data['status'] = 'green' if m.group(1) == '🟢' else 'red'
 
-    return data
+    result = {
+        'emoji_entry': data,
+        'leverage': 10,
+        'emoji_upd': {},
+        'ohlc': {},
+        'stats': {}
+    }
+    return result
 
 
 @bp.route('/objects', methods=['GET'])

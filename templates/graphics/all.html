@@ -43,11 +43,12 @@
   
   <div class="charts-grid" id="chartsGrid">
     {% for obj in objects %}
-    {% if obj.data and obj.data.get('symbol') and obj.data.get('entry_price') and obj.data.get('entry_date') %}
-    <div class="chart-card" data-id="{{ obj.id }}" data-symbol="{{ obj.data.symbol }}" data-entry-price="{{ obj.data.entry_price }}" data-entry-date="{{ obj.data.entry_date }}">
-      <h2><a href="/card/{{ obj.id }}" style="color:var(--link-color); text-decoration:none;">{{ obj.name }}</a></h2>
+    {% set entry = obj.data.get('emoji_entry', {}) %}
+    {% if entry and entry.get('symbol') and entry.get('entry_price') and entry.get('entry_date') %}
+    <div class="chart-card" data-id="{{ obj.id }}" data-symbol="{{ entry.symbol }}" data-entry-price="{{ entry.entry_price }}" data-entry-date="{{ entry.entry_date }}">
+      <h2><a href="/card/{{ obj.id }}" style="color:var(--link-color); text-decoration:none;">{{ obj.name }} <span style="font-size:11px; color:#888;">x{{ obj.data.get('leverage', 10) }}</span></a></h2>
       <div class="emoji-summary">
-        <a href="/card/{{ obj.id }}">🏗️{{ obj.data.get('number', '—') }} 🚏{{ obj.data.symbol }} 🧾{{ obj.data.entry_price }} 📆{{ obj.data.entry_date }} 🕒{{ obj.data.entry_time }}дн 🧱{{ obj.data.volume }} 🫧{{ obj.data.pnl_usdt }} {% if obj.data.pnl_percent >= 0 %}📈{{ obj.data.pnl_percent }}{% else %}📉{{ obj.data.pnl_percent }}{% endif %} 📦{{ obj.data.result }}</a>
+        <a href="/card/{{ obj.id }}">🏗️{{ entry.get('number', '—') }} 🚏{{ entry.get('symbol', '—') }} 🧾{{ entry.get('entry_price', '—') }} 📆{{ entry.get('entry_date', '—') }} 🕒{{ entry.get('entry_time', '—') }} дн 🧱{{ entry.get('volume', '—') }} 🫧{{ entry.get('pnl_percent', '—') }} {% if entry.get('pnl_percent', 0) >= 0 %}📈{{ entry.get('pnl_usdt', '—') }}{% else %}📉{{ entry.get('pnl_usdt', '—') }}{% endif %} 📦{{ entry.get('result', '—') }} ⬆️{{ obj.data.get('leverage', 10) }}</a>
       </div>
       <div class="loader" data-started="true"><span class="spinner"></span> Загрузка... <span class="load-time">0</span> мс</div>
       <div class="chart-header"></div>
@@ -204,6 +205,21 @@
         const today = new Date();
         const daysAll = Math.floor((today - entryDate) / (1000 * 60 * 60 * 24));
         summaryEl.innerHTML = '<span style="color:#16a34a;">Dp+(' + posDays + ')</span> <span style="color:#16a34a;">Max: +' + s.max_usdt + ' USDT (' + s.max_pct + '%)</span> <span style="color:#dc2626;">Dn-(' + negDays + ')</span> <span style="color:#dc2626;">Min: ' + s.min_usdt + ' USDT (' + s.min_pct + '%)</span> <span>Da(' + daysAll + ')</span>';
+
+        if (json.ohlc) {
+          const ohlcEl = document.createElement('div');
+          ohlcEl.style.cssText = 'margin-top:0.2rem; font-size:10px;';
+          const cur = json.ohlc.current;
+          ohlcEl.innerHTML = '<span style="color:#888;">Тело:</span> ' + cur.body + ' <span style="color:#16a34a;">Max:</span> ' + json.ohlc.max.price + ' (' + json.ohlc.max.pct + '%) <span style="color:#dc2626;">Min:</span> ' + json.ohlc.min.price + ' (' + json.ohlc.min.pct + '%) <span style="color:#888;">Волат:</span> ' + json.ohlc.max.volatility;
+          summaryEl.parentNode.insertBefore(ohlcEl, summaryEl.nextSibling);
+        }
+
+        if (json.stats) {
+          const statsEl = document.createElement('div');
+          statsEl.style.cssText = 'margin-top:0.2rem; font-size:10px;';
+          statsEl.innerHTML = '<span style="color:#dc2626;">Dn(' + json.stats.dn + ')</span> <span style="color:#16a34a;">Dp(' + json.stats.dp + ')</span> <span>Da(' + json.stats.da + ')</span>';
+          summaryEl.parentNode.insertBefore(statsEl, summaryEl.nextSibling);
+        }
       }
     }
 

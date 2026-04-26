@@ -6,8 +6,11 @@ from models import FundObj
 
 
 class JSONStorage:
-    def __init__(self, data_dir='data'):
-        self.data_dir = Path(data_dir)
+    def __init__(self, data_dir=None):
+        if data_dir is None:
+            self.data_dir = Path(__file__).parent / 'data'
+        else:
+            self.data_dir = Path(data_dir)
         self.data_dir.mkdir(exist_ok=True)
 
     def _path(self, obj_id):
