@@ -29,8 +29,8 @@
             🕒{{ entry.get('entry_time', '—') }} дн
             🧱{{ entry.get('volume', '—') }}
             🫧{{ entry.get('pnl_percent', '—') }}
-            {% if entry.get('pnl_percent', 0) >= 0 %}📈{{ entry.get('pnl_usdt', '—') }}{% else %}📉{{ entry.get('pnl_usdt', '—') }}{% endif %}
-            📦{{ entry.get('result', '—') }}
+            🪙{{ entry.get('pnl_usdt', '—') }}
+            📦 📉{{ entry.get('result', '—') }}
             ⬆️{{ obj.data.get('leverage', 10) }}
         </div>
         
@@ -43,8 +43,8 @@
             🕒{{ upd.get('entry_time', '—') }} дн
             🧱{{ entry.get('volume', '—') }}
             🫧{{ upd.get('pnl_percent', '—') }}
-            {% if upd.get('pnl_percent', 0) >= 0 %}📈{{ upd.get('pnl_usdt', '—') }}{% else %}📉{{ upd.get('pnl_usdt', '—') }}{% endif %}
-            {% if upd.get('pnl_percent', 0) >= 0 %}📦🟢{% else %}📦🔴{% endif %}
+            🪙{{ upd.get('pnl_usdt', '—') }}
+            📦 📉{% if upd.get('pnl_percent', 0) >= 0 %}🟢{% else %}🔴{% endif %}
             ⬆️{{ obj.data.get('leverage', 10) }}
         </div>
         {% endif %}

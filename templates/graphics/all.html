@@ -48,7 +48,7 @@
     <div class="chart-card" data-id="{{ obj.id }}" data-symbol="{{ entry.symbol }}" data-entry-price="{{ entry.entry_price }}" data-entry-date="{{ entry.entry_date }}">
       <h2><a href="/card/{{ obj.id }}" style="color:var(--link-color); text-decoration:none;">{{ obj.name }} <span style="font-size:11px; color:#888;">x{{ obj.data.get('leverage', 10) }}</span></a></h2>
       <div class="emoji-summary">
-        <a href="/card/{{ obj.id }}">🏗️{{ entry.get('number', '—') }} 🚏{{ entry.get('symbol', '—') }} 🧾{{ entry.get('entry_price', '—') }} 📆{{ entry.get('entry_date', '—') }} 🕒{{ entry.get('entry_time', '—') }} дн 🧱{{ entry.get('volume', '—') }} 🫧{{ entry.get('pnl_percent', '—') }} {% if entry.get('pnl_percent', 0) >= 0 %}📈{{ entry.get('pnl_usdt', '—') }}{% else %}📉{{ entry.get('pnl_usdt', '—') }}{% endif %} 📦{{ entry.get('result', '—') }} ⬆️{{ obj.data.get('leverage', 10) }}</a>
+        <a href="/card/{{ obj.id }}">🏗️{{ entry.get('number', '—') }} 🚏{{ entry.get('symbol', '—') }} 🧾{{ entry.get('entry_price', '—') }} 📆{{ entry.get('entry_date', '—') }} 🕒{{ entry.get('entry_time', '—') }} дн 🧱{{ entry.get('volume', '—') }} 🫧{{ entry.get('pnl_percent', '—') }} 🪙{{ entry.get('pnl_usdt', '—') }} 📦 📉{{ entry.get('result', '—') }} ⬆️{{ obj.data.get('leverage', 10) }}</a>
       </div>
       <div class="loader" data-started="true"><span class="spinner"></span> Загрузка... <span class="load-time">0</span> мс</div>
       <div class="chart-header"></div>

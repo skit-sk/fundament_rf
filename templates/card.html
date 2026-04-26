@@ -20,15 +20,15 @@
         🕒{{ entry.get('entry_time', '—') }} дн
         🧱{{ entry.get('volume', '—') }}
         🫧{{ entry.get('pnl_percent', '—') }}
-        {% if entry.get('pnl_percent', 0) >= 0 %}📈{{ entry.get('pnl_usdt', '—') }}{% else %}📉{{ entry.get('pnl_usdt', '—') }}{% endif %}
-        📦{{ entry.get('result', '—') }}
+        🪙{{ entry.get('pnl_usdt', '—') }}
+        📦 📉{{ entry.get('result', '—') }}
         ⬆️{{ obj.data.get('leverage', 10) }}
     </div>
 
     {% if upd and upd.get('entry_price') %}
     <div class="emoji-summary" style="margin-bottom:0.5rem; padding:0.2rem; background:var(--emoji-bg); border-radius:6px; font-size:10px; white-space:nowrap; overflow-x:auto;">
         🫧{{ upd.get('pnl_percent', '—') }}
-        {% if upd.get('pnl_percent', 0) >= 0 %}📈{{ upd.get('pnl_usdt', '—') }}{% else %}📉{{ upd.get('pnl_usdt', '—') }}{% endif %}
+        🪙{{ upd.get('pnl_usdt', '—') }}
         🧾{{ upd.get('entry_price', '—') }}
         🕒{{ upd.get('entry_time', '—') }} дн
     </div>
