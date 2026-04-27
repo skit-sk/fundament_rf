@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="card" style="max-width:100%; overflow:hidden; padding:0.5rem;">
-    <h2>{{ obj.name }}</h2>
+    <h2>{{ obj.name }} <button onclick="refreshCard('{{ obj.id }}', this)" id="refreshCardBtn" style="background:none; border:none; font-size:12px; cursor:pointer; vertical-align:middle; padding:2px 6px; border-radius:4px; color:#3498db;" title="Обновить">🔄</button><span id="cardRefreshTimer" style="display:none; margin-left:4px; color:#e74c3c; font-weight:bold;"></span></h2>
 
     {% set entry = obj.data.get('emoji_entry', {}) %}
     {% set upd = obj.data.get('emoji_upd', {}) %}
@@ -25,55 +25,21 @@
         <span style="min-width:22px;">⬆️{{ obj.data.get('leverage', 10) }}</span>
     </div>
 
-    {% if upd and upd.get('entry_price') %}
-    <div class="emoji-summary" style="margin-bottom:0.5rem; padding:0.25rem; background:var(--emoji-bg); border-radius:6px; font-size:9px; display:flex; flex-wrap:nowrap; gap:3px; justify-content:flex-start; align-items:center; overflow-x:auto; min-width:0;">
-        <span style="min-width:40px;">🫧{{ upd.get('pnl_percent', '—') }}</span>
-        <span style="min-width:40px;">🪙{{ upd.get('pnl_usdt', '—') }}</span>
-        <span style="min-width:50px;">🧾{{ upd.get('entry_price', '—') }}</span>
-        <span style="min-width:28px;">🕒{{ upd.get('entry_time', '—') }}дн</span>
-    </div>
-    {% endif %}
-
-    <div style="font-size:9px; color:var(--text-muted); text-align:center; margin-bottom:0.5rem;">
-        <span>{{ obj.data.get('created_at', '')[:19] }}</span>
-        <span> → </span>
-        <span>{{ obj.data.get('updated_at', '')[:19] }}</span>
-    </div>
-
     {% if entry %}
-    <table class="data-table" style="width:100%; border-collapse:collapse; margin-bottom:0.5rem; font-size:8px; background:var(--bg-card); table-layout:fixed;">
-        {% set main_keys = ['number', 'symbol', 'entry_price', 'entry_date', 'entry_time', 'volume', 'pnl_percent', 'pnl_usdt', 'result', 'leverage'] %}
-        <tr>
-            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">🏗️</td>
-            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">🚏</td>
-            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">🧾</td>
-            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">📆</td>
-            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">🕒</td>
-            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">🧱</td>
-<td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">pnl_usdt</td>
-            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">pnl_percent</td>
-            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">result</td>
-            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">leverage</td>
-        </tr>
-        <tr>
-            <td style="padding:1px 2px; font-weight:bold; color:var(--text-muted); text-align:center; white-space:nowrap;">pnl_usdt</td>
-            <td style="padding:1px 2px; font-weight:bold; color:var(--text-muted); text-align:center; white-space:nowrap;">pnl_percent</td>
-            <td style="padding:1px 2px; font-weight:bold; color:var(--text-muted); text-align:center; white-space:nowrap;">result</td>
-            <td style="padding:1px 2px; font-weight:bold; color:var(--text-muted); text-align:center; white-space:nowrap;">leverage</td>
-        </tr>
-<tr>
-            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">pnl_usdt</td>
-            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">pnl_percent</td>
-            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">result</td>
-            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">leverage</td>
-        </tr>
-        <tr>
-            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">{{ entry.get('pnl_usdt', '') }}</td>
-            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">{{ entry.get('pnl_percent', '') }}</td>
-            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">{{ entry.get('result', '') }}</td>
-            <td style="padding:1px 2px; text-align:center; color:var(--text-muted); white-space:nowrap;">{{ obj.data.get('leverage', 10) }}</td>
-        </tr>
-    </table>
+    <div class="emoji-summary" style="margin-top:0.5rem; padding:0.2rem; background:var(--emoji-bg); border-radius:6px; font-size:7px; display:flex; flex-wrap:nowrap; gap:1px; justify-content:flex-start; align-items:center; overflow-x:hidden; min-width:0;">
+        <span style="min-width:12px;flex-shrink:0;">🏗️{{ entry.get('number', '') }}</span>
+        <span style="min-width:20px;flex-shrink:0;">🚏{{ entry.get('symbol', '') }}</span>
+        <span style="min-width:42px;flex-shrink:0;">🧾{{ entry.get('entry_price', '') }}</span>
+        <span style="min-width:46px;flex-shrink:0;">📆{{ entry.get('entry_date', '') }}</span>
+        <span style="min-width:20px;flex-shrink:0;">🕒{{ upd.get('entry_time', '') }}дн</span>
+        <span style="min-width:42px;flex-shrink:0;">🧾{{ upd.get('current_price', '') }}</span>
+        <span style="min-width:46px;flex-shrink:0;">📆{{ obj.data.get('chart_updated', '')[:10] }}</span>
+        <span style="min-width:24px;flex-shrink:0;">🧱{{ entry.get('volume', '') }}</span>
+        <span style="min-width:32px;flex-shrink:0;">🫧{{ upd.get('pnl_percent', '') }}</span>
+        <span style="min-width:32px;flex-shrink:0;">🪙{{ upd.get('pnl_usdt', '') }}</span>
+        <span style="min-width:14px;flex-shrink:0;">📦{{ upd.get('result', entry.get('result', '')) }}</span>
+        <span style="min-width:14px;flex-shrink:0;">⬆️{{ obj.data.get('leverage', 10) }}</span>
+    </div>
     {% endif %}
 
     {% else %}
@@ -266,5 +232,48 @@ ctx.fillText('Entry: 0%', pad.l + 4, yZero - 4);
     }
     load();
 })();
+
+async function refreshCard(objId, btn) {
+    const timerEl = document.getElementById('cardRefreshTimer');
+    const start = Date.now();
+    
+    function updateTimer() {
+        const elapsed = Date.now() - start;
+        if (timerEl) {
+            timerEl.style.display = 'inline';
+            timerEl.textContent = elapsed + 'мс';
+        }
+    }
+    
+    const timer = setInterval(updateTimer, 50);
+    
+    try {
+        const res = await fetch('/graphics/chart/' + objId);
+        const json = await res.json();
+        clearInterval(timer);
+        
+        const ms = Date.now() - start;
+        
+        if (timerEl) {
+            timerEl.style.display = 'inline';
+            timerEl.textContent = json.error ? '❌' : ms + 'мс';
+        }
+        
+        if (!json.error) {
+            setTimeout(() => location.reload(), 800);
+        }
+    } catch(e) {
+        clearInterval(timer);
+        if (timerEl) {
+            timerEl.textContent = '❌';
+            timerEl.style.display = 'inline';
+        }
+    }
+    
+    setTimeout(() => {
+        btn.textContent = '🔄';
+        if (timerEl) timerEl.style.display = 'none';
+    }, 10000);
+}
 </script>
 {% endblock %}

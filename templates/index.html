@@ -3,18 +3,17 @@
 {% block title %}Главная - Fundament RF{% endblock %}
 
 {% block content %}
-<h2 style="text-align:center;">Объекты</h2>
+<h2 style="text-align:center;">Объекты <button onclick="refreshAll()" id="refreshAllBtn" style="background:#3498db; border:none; font-size:12px; cursor:pointer; vertical-align:middle; padding:4px 8px; border-radius:4px; color:#fff;" title="Обновить все">🔄</button></h2>
 
 {% if objects %}
 <ul class="object-list">
 {% for obj in objects %}
     {% set entry = obj.data.get('emoji_entry', {}) %}
     {% set upd = obj.data.get('emoji_upd', {}) %}
-    <li style="position:relative; display:flex; flex-direction:column; gap:2px; background:var(--bg-card); padding:1rem; border-radius:4px; margin-bottom:0.5rem; box-shadow:0 1px 3px var(--shadow);">
-        <a href="{{ url_for('web.card', obj_id=obj.id) }}" style="position:absolute; inset:0; z-index:1;"></a>
+    <li data-id="{{ obj.id }}" style="position:relative; display:flex; flex-direction:column; gap:2px; background:var(--bg-card); padding:1rem; border-radius:4px; margin-bottom:0.5rem; box-shadow:0 1px 3px var(--shadow);">
         <div style="display:flex; align-items:center; justify-content:space-between; width:100%; position:relative; z-index:2;">
             <div style="flex:1; text-align:center; order:2;">
-                <span style="font-size:15px; font-weight:bold; color:var(--link-color);">{{ obj.name }}</span>
+                <a href="{{ url_for('web.card', obj_id=obj.id) }}" style="font-size:15px; font-weight:bold; color:var(--link-color); text-decoration:none;">{{ obj.name }}</a>
                 <span style="font-size:11px; color:#888; margin-left:8px;">x{{ obj.data.get('leverage', 10) }}</span>
             </div>
             <a href="{{ url_for('web.delete_object', obj_id=obj.id) }}" class="delete-btn" onclick="return confirm('Удалить?')" style="order:3;">×</a>
@@ -22,37 +21,21 @@
         
         {% if entry %}
         <div class="emoji-summary" style="font-size:9px; color:var(--text-muted); white-space:nowrap; text-align:center; display:flex; justify-content:center; gap:2px; width:100%;">
-            🏗️{{ entry.get('number', '—') }}
-            🚏{{ entry.get('symbol', '—') }}
-            🧾{{ entry.get('entry_price', '—') }}
-            📆{{ entry.get('entry_date', '—') }}
-            🕒{{ entry.get('entry_time', '—') }} дн
-            🧱{{ entry.get('volume', '—') }}
-            🫧{{ entry.get('pnl_percent', '—') }}
-            🪙{{ entry.get('pnl_usdt', '—') }}
-            📦 📉{{ entry.get('result', '—') }}
-            ⬆️{{ obj.data.get('leverage', 10) }}
+            <a href="{{ url_for('web.card', obj_id=obj.id) }}" style="text-decoration:none;">🏗️{{ entry.get('number', '—') }} 🚏{{ entry.get('symbol', '—') }} 🧾{{ entry.get('entry_price', '—') }} 📆{{ entry.get('entry_date', '—') }} 🕒{{ entry.get('entry_time', '—') }}дн 🧱{{ entry.get('volume', '—') }} 🫧{{ entry.get('pnl_percent', '—') }} 🪙{{ entry.get('pnl_usdt', '—') }} 📦{{ entry.get('result', '—') }} ⬆️{{ obj.data.get('leverage', 10) }}</a>
         </div>
         
         {% if upd and upd.get('current_price') %}
         <div class="emoji-summary" style="font-size:9px; color:var(--text-muted); white-space:nowrap; text-align:center; display:flex; justify-content:center; gap:2px; width:100%;">
-            🏗️{{ entry.get('number', '—') }}
-            🚏{{ entry.get('symbol', '—') }}
-            🧾{{ upd.get('current_price', '—') }}
-            📆{{ entry.get('entry_date', '—') }}
-            🕒{{ upd.get('entry_time', '—') }} дн
-            🧱{{ entry.get('volume', '—') }}
-            🫧{{ upd.get('pnl_percent', '—') }}
-            🪙{{ upd.get('pnl_usdt', '—') }}
-            📦 📉{% if upd.get('pnl_percent', 0) >= 0 %}🟢{% else %}🔴{% endif %}
-            ⬆️{{ obj.data.get('leverage', 10) }}
+            <a href="{{ url_for('web.card', obj_id=obj.id) }}" style="text-decoration:none;">🏗️{{ entry.get('number', '—') }} 🚏{{ entry.get('symbol', '—') }} 🧾{{ upd.get('current_price', '—') }} 📆{{ entry.get('entry_date', '—') }} 🕒{{ upd.get('entry_time', '—') }}дн 🧱{{ entry.get('volume', '—') }} 🫧{{ upd.get('pnl_percent', '—') }} 🪙{{ upd.get('pnl_usdt', '—') }} 📦{{ upd.get('result', entry.get('result', '')) }} ⬆️{{ obj.data.get('leverage', 10) }}</a>
         </div>
         {% endif %}
         
         {% set created = obj.created_at|string %}
-        {% set updated = obj.updated_at|string %}
+        {% set updated = obj.data.get('chart_updated', '') %}
         <div style="font-size:8px; color:#666; text-align:center;">
-            entry: {{ entry.get('entry_date', '') }} → add: {{ created[:10] }} | upd: {{ updated[:10] }}
+            <span>entry: {{ entry.get('entry_date', '') }} | add: {{ created[:10] }} | upd: {% if updated %}{{ updated }}{% else %}—{% endif %}</span>
+            <button onclick="event.preventDefault(); event.stopPropagation(); refreshOne('{{ obj.id }}', this)" class="refresh-btn" style="background:none; border:none; font-size:8px; cursor:pointer; margin-left:4px; color:#3498db; vertical-align:middle; padding:2px 4px; border-radius:3px; z-index:100; position:relative;" title="Обновить">🔄</button>
+            <span class="refresh-timer" data-id="{{ obj.id }}" style="display:none; margin-left:4px; color:#e74c3c; font-weight:bold;"></span>
         </div>
         {% endif %}
     </li>
@@ -71,4 +54,127 @@
         </form>
     </details>
 </div>
+
+<style>
+.delete-btn { color:#dc2626; font-size:20px; text-decoration:none; margin-left:8px; }
+.refresh-btn { background:none; border:none; cursor:pointer; vertical-align:middle; }
+</style>
+
+<script>
+let refreshAllRunning = false;
+
+async function refreshAll() {
+    if (refreshAllRunning) return;
+    refreshAllRunning = true;
+    
+    const btn = document.getElementById('refreshAllBtn');
+    const cards = document.querySelectorAll('.object-list li');
+    const total = cards.length;
+    const ids = [];
+    const symbols = [];
+    cards.forEach(c => { 
+        if (c.dataset.id) {
+            ids.push(c.dataset.id);
+            const emojiLink = c.querySelector('.emoji-summary a');
+            if (emojiLink) {
+                const match = emojiLink.textContent.match(/🚏(\w+)/);
+                symbols.push(match ? match[1] : '?');
+            } else {
+                symbols.push('?');
+            }
+        }
+    });
+    
+    btn.textContent = '⏳ 0/' + total;
+    
+    for (let i = 0; i < total; i++) {
+        const objId = ids[i];
+        const card = cards[i];
+        const timerEl = card.querySelector('.refresh-timer');
+        
+        btn.textContent = '⏳ ' + (i + 1) + '/' + total + ' ' + symbols[i];
+        btn.disabled = true;
+        
+        if (timerEl) {
+            timerEl.style.display = 'inline';
+            timerEl.textContent = '⏳';
+        }
+        
+        try {
+            const start = Date.now();
+            const res = await fetch('/graphics/chart/' + objId);
+            const json = await res.json();
+            const ms = Date.now() - start;
+            
+            if (timerEl) {
+                timerEl.textContent = json.error ? '❌' : ms + 'мс';
+            }
+        } catch(e) {
+            if (timerEl) {
+                timerEl.textContent = '❌';
+            }
+        }
+    }
+    
+    btn.textContent = '✅';
+    
+    setTimeout(() => {
+        refreshAllRunning = false;
+        btn.textContent = '🔄';
+        btn.disabled = false;
+        location.reload();
+    }, 10000);
+}
+
+async function refreshOne(objId, btn) {
+    const card = document.querySelector('li[data-id="' + objId + '"]');
+    const timerEl = card ? card.querySelector('.refresh-timer') : null;
+    const start = Date.now();
+    
+    function updateTimer() {
+        const elapsed = Date.now() - start;
+        if (timerEl) {
+            timerEl.style.display = 'inline';
+            timerEl.textContent = elapsed + 'мс';
+        }
+    }
+    
+    const timer = setInterval(updateTimer, 50);
+    
+    try {
+        const res = await fetch('/graphics/chart/' + objId);
+        const json = await res.json();
+        clearInterval(timer);
+        
+        const ms = Date.now() - start;
+        
+        if (timerEl) {
+            timerEl.style.display = 'inline';
+            timerEl.textContent = json.error ? '❌' : ms + 'мс';
+        }
+        
+        if (!json.error) {
+            timerEl.textContent = ms + 'мс';
+            // Ждём 10 сек перед сбросом, затем перезагрузка
+            setTimeout(() => {
+                btn.textContent = '🔄';
+                if (timerEl) timerEl.style.display = 'none';
+                location.reload();
+            }, 10000);
+        } else {
+            btn.textContent = '❌';
+            setTimeout(() => {
+                btn.textContent = '🔄';
+                if (timerEl) timerEl.style.display = 'none';
+            }, 10000);
+        }
+    } catch(e) {
+        clearInterval(timer);
+        if (timerEl) {
+            timerEl.textContent = '❌';
+            timerEl.style.display = 'inline';
+        }
+    }
+}
+</script>
 {% endblock %}

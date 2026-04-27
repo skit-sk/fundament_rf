@@ -17,6 +17,7 @@
     --input-bg: #ffffff;
     --btn-bg: #3498db;
     --emoji-bg: #f0f4ff;
+    --emoji-bg2: #e8f0fe;
 }
 
 html[data-theme="dark"] {
