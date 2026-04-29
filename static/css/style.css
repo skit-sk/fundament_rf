@@ -18,6 +18,10 @@
     --btn-bg: #3498db;
     --emoji-bg: #f0f4ff;
     --emoji-bg2: #e8f0fe;
+    --color-profit: #16a34a;
+    --color-loss: #dc2626;
+    --color-profit-bg: rgba(22, 163, 74, 0.15);
+    --color-loss-bg: rgba(220, 38, 38, 0.15);
 }
 
 html[data-theme="dark"] {
@@ -33,6 +37,10 @@ html[data-theme="dark"] {
     --input-bg: #333333;
     --btn-bg: #1976d2;
     --emoji-bg: #2a3a4a;
+    --color-profit: #4ade80;
+    --color-loss: #f87171;
+    --color-profit-bg: rgba(74, 222, 128, 0.15);
+    --color-loss-bg: rgba(248, 113, 113, 0.15);
 }
 
 body {
@@ -196,4 +204,23 @@ canvas {
 .graphics-link {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
+}
+/* Emoji summary - единый стиль */
+.emoji-summary {
+    background: var(--emoji-bg);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 9px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2px;
+    width: 100%;
+    overflow-x: auto;
+}
+.emoji-summary span {
+    display: inline;
 }

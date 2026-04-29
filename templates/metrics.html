@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}Метрики - Fundament RF{% endblock %}
+
+{% block content %}
+<h2 style="text-align:center;">Метрики процессора 1D</h2>
+
+<div class="metrics-summary" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:1rem; margin:1rem 0;">
+    <div class="metric-card" style="background:var(--bg-card); padding:1rem; border-radius:6px; text-align:center;">
+        <div style="font-size:24px; font-weight:bold;" id="totalOps">—</div>
+        <div style="font-size:11px; color:#888;">Всего операций</div>
+    </div>
+    <div class="metric-card" style="background:var(--bg-card); padding:1rem; border-radius:6px; text-align:center;">
+        <div style="font-size:24px; font-weight:bold;" id="avgApi">—</div>
+        <div style="font-size:11px; color:#888;">Среднее API (мс)</div>
+    </div>
+    <div class="metric-card" style="background:var(--bg-card); padding:1rem; border-radius:6px; text-align:center;">
+        <div style="font-size:24px; font-weight:bold;" id="avgProc">—</div>
+        <div style="font-size:11px; color:#888;">Среднее обработка (мс)</div>
+    </div>
+    <div class="metric-card" style="background:var(--bg-card); padding:1rem; border-radius:6px; text-align:center;">
+        <div style="font-size:24px; font-weight:bold;" id="avgTotal">—</div>
+        <div style="font-size:11px; color:#888;">Среднее всего (мс)</div>
+    </div>
+    <div class="metric-card" style="background:var(--bg-card); padding:1rem; border-radius:6px; text-align:center;">
+        <div style="font-size:24px; font-weight:bold; color:#dc2626;" id="failedCount">—</div>
+        <div style="font-size:11px; color:#888;">Ошибок</div>
+    </div>
+    <div class="metric-card" style="background:var(--bg-card); padding:1rem; border-radius:6px; text-align:center;">
+        <div style="font-size:14px;" id="lastOp">—</div>
+        <div style="font-size:11px; color:#888;">Последняя операция</div>
+    </div>
+</div>
+
+<div class="actions" style="text-align:center; margin:1rem 0;">
+    <button onclick="refreshMetrics()" style="background:#3498db; border:none; color:#fff; padding:8px 16px; border-radius:4px; cursor:pointer; margin-right:8px;">🔄 Обновить</button>
+    <button onclick="clearMetrics()" style="background:#dc2626; border:none; color:#fff; padding:8px 16px; border-radius:4px; cursor:pointer;">🗑️ Очистить</button>
+</div>
+
+<h3>Последние операции</h3>
+<div class="records-table" style="overflow-x:auto;">
+    <table style="width:100%; border-collapse:collapse; font-size:12px;">
+        <thead>
+            <tr style="background:var(--bg-card);">
+                <th style="padding:8px; text-align:left;">Время</th>
+                <th style="padding:8px; text-align:left;">ID объекта</th>
+                <th style="padding:8px; text-align:left;">Операция</th>
+                <th style="padding:8px; text-align:right;">API (мс)</th>
+                <th style="padding:8px; text-align:right;">Обработка (мс)</th>
+                <th style="padding:8px; text-align:right;">Запись (мс)</th>
+                <th style="padding:8px; text-align:right;">Всего (мс)</th>
+                <th style="padding:8px; text-align:center;">Статус</th>
+                <th style="padding:8px; text-align:right;">Дней</th>
+            </tr>
+        </thead>
+        <tbody id="recordsBody">
+            <tr><td colspan="9" style="padding:16px; text-align:center; color:#888;">Загрузка...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<style>
+.metric-card { box-shadow: 0 1px 3px var(--shadow); }
+table th { border-bottom: 2px solid var(--border-color); }
+table td { border-bottom: 1px solid var(--border-color); padding:6px 8px; }
+tr:hover { background: var(--bg-card); }
+.status-completed { color: #16a34a; }
+.status-failed { color: #dc2626; }
+.status-skipped { color: #888; }
+.status-partial { color: #f59e0b; }
+</style>
+
+<script>
+async function loadMetrics() {
+    try {
+        const res = await fetch('/processor_1d/metrics/data');
+        const data = await res.json();
+
+        const agg = data.aggregated || {};
+        document.getElementById('totalOps').textContent = agg.total_operations || 0;
+        document.getElementById('avgApi').textContent = agg.avg_api_ms ? Math.round(agg.avg_api_ms) : 0;
+        document.getElementById('avgProc').textContent = agg.avg_processing_ms ? Math.round(agg.avg_processing_ms) : 0;
+        document.getElementById('avgTotal').textContent = agg.avg_total_ms ? Math.round(agg.avg_total_ms) : 0;
+        document.getElementById('failedCount').textContent = agg.failed_count || 0;
+        document.getElementById('lastOp').textContent = agg.last_operation ? agg.last_operation.substring(0, 16) : '—';
+
+        const tbody = document.getElementById('recordsBody');
+        const records = data.records || [];
+
+        if (records.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="9" style="padding:16px; text-align:center; color:#888;">Нет записей</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = records.slice(0, 50).map(r => {
+            const dur = r.duration_ms || {};
+            const res = r.result || {};
+            const statusClass = 'status-' + (res.status || 'unknown');
+            return `<tr>
+                <td>${r.timestamp ? r.timestamp.substring(0, 19) : '—'}</td>
+                <td style="max-width:120px; overflow:hidden; text-overflow:ellipsis;"><a href="/obj/${r.obj_id}" title="${r.obj_id}">${r.obj_id ? r.obj_id.substring(0, 8) + '...' : '—'}</a></td>
+                <td><span style="padding:2px 6px; border-radius:3px; background:${getOpColor(r.operation)}; color:#fff;">${r.operation || '—'}</span></td>
+                <td style="text-align:right;">${dur.api_request_ms || 0}</td>
+                <td style="text-align:right;">${dur.processing_ms || 0}</td>
+                <td style="text-align:right;">${dur.writing_ms || 0}</td>
+                <td style="text-align:right; font-weight:bold;">${dur.total_ms || 0}</td>
+                <td style="text-align:center;" class="${statusClass}">${res.status || '—'}</td>
+                <td style="text-align:right;">${res.days_processed || 0}</td>
+            </tr>`;
+        }).join('');
+    } catch(e) {
+        document.getElementById('recordsBody').innerHTML = `<tr><td colspan="9" style="padding:16px; text-align:center; color:#dc2626;">Ошибка: ${e.message}</td></tr>`;
+    }
+}
+
+function getOpColor(op) {
+    const colors = {'create': '#3498db', 'sync': '#9b59b6', 'force': '#e67e22', 'batch': '#1abc9c'};
+    return colors[op] || '#888';
+}
+
+async function refreshMetrics() {
+    await loadMetrics();
+}
+
+async function clearMetrics() {
+    if (!confirm('Очистить все метрики?')) return;
+    try {
+        await fetch('/processor_1d/metrics/clear', {method: 'POST'});
+        await loadMetrics();
+    } catch(e) {
+        alert('Ошибка: ' + e.message);
+    }
+}
+
+loadMetrics();
+</script>
+{% endblock %}

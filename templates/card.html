@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "macros.html" import emoji_entry, emoji_upd with context %}
 
 {% block title %}{{ obj.name }} - Fundament RF{% endblock %}
 
@@ -8,65 +9,432 @@
 
     {% set entry = obj.data.get('emoji_entry', {}) %}
     {% set upd = obj.data.get('emoji_upd', {}) %}
-    {% set ohlc = obj.data.get('ohlc', {}) %}
+    {% set ohlc_data = obj.data.get('ohlc', {}) %}
     {% set stats = obj.data.get('stats', {}) %}
 
-    {% if obj.data %}
-    <div class="emoji-summary" style="margin-bottom:0.5rem; padding:0.25rem; background:var(--emoji-bg); border-radius:6px; font-size:9px; display:flex; flex-wrap:nowrap; gap:3px; justify-content:flex-start; align-items:center; overflow-x:auto; min-width:0;">
-        <span style="min-width:18px;">🏗️{{ entry.get('number', '—') }}</span>
-        <span style="min-width:28px;">🚏{{ entry.get('symbol', '—') }}</span>
-        <span style="min-width:50px;">🧾{{ entry.get('entry_price', '—') }}</span>
-        <span style="min-width:55px;">📆{{ entry.get('entry_date', '—') }}</span>
-        <span style="min-width:28px;">🕒{{ entry.get('entry_time', '—') }}дн</span>
-        <span style="min-width:30px;">🧱{{ entry.get('volume', '—') }}</span>
-        <span style="min-width:40px;">🫧{{ entry.get('pnl_percent', '—') }}</span>
-        <span style="min-width:40px;">🪙{{ entry.get('pnl_usdt', '—') }}</span>
-        <span style="min-width:22px;">📦📉{{ entry.get('result', '—') }}</span>
-        <span style="min-width:22px;">⬆️{{ obj.data.get('leverage', 10) }}</span>
-    </div>
-
-    {% if entry %}
-    <div class="emoji-summary" style="margin-top:0.5rem; padding:0.2rem; background:var(--emoji-bg); border-radius:6px; font-size:7px; display:flex; flex-wrap:nowrap; gap:1px; justify-content:flex-start; align-items:center; overflow-x:hidden; min-width:0;">
-        <span style="min-width:12px;flex-shrink:0;">🏗️{{ entry.get('number', '') }}</span>
-        <span style="min-width:20px;flex-shrink:0;">🚏{{ entry.get('symbol', '') }}</span>
-        <span style="min-width:42px;flex-shrink:0;">🧾{{ entry.get('entry_price', '') }}</span>
-        <span style="min-width:46px;flex-shrink:0;">📆{{ entry.get('entry_date', '') }}</span>
-        <span style="min-width:20px;flex-shrink:0;">🕒{{ upd.get('entry_time', '') }}дн</span>
-        <span style="min-width:42px;flex-shrink:0;">🧾{{ upd.get('current_price', '') }}</span>
-        <span style="min-width:46px;flex-shrink:0;">📆{{ obj.data.get('chart_updated', '')[:10] }}</span>
-        <span style="min-width:24px;flex-shrink:0;">🧱{{ entry.get('volume', '') }}</span>
-        <span style="min-width:32px;flex-shrink:0;">🫧{{ upd.get('pnl_percent', '') }}</span>
-        <span style="min-width:32px;flex-shrink:0;">🪙{{ upd.get('pnl_usdt', '') }}</span>
-        <span style="min-width:14px;flex-shrink:0;">📦{{ upd.get('result', entry.get('result', '')) }}</span>
-        <span style="min-width:14px;flex-shrink:0;">⬆️{{ obj.data.get('leverage', 10) }}</span>
-    </div>
-    {% endif %}
-
-    {% else %}
+    {% if not obj.data %}
     <p>Нет данных.</p>
     {% endif %}
 
     {% if entry and entry.get('symbol') and entry.get('entry_price') and entry.get('entry_date') %}
-    <div id="chartContainer" style="margin-top:1rem;">
-        <h3>График отклонения цены</h3>
-        <div id="chartLoader" style="display:flex; align-items:center; gap:8px; margin-bottom:0.5rem; font-size:14px; color:var(--text-muted);">
-            <span id="loaderSpinner" style="display:inline-block; width:16px; height:16px; border:2px solid var(--border-color); border-top-color:#1e88e5; border-radius:50%; animation:spin 0.8s linear infinite;"></span>
-            <span>Загрузка данных… <span id="loaderTimer">0</span> мс</span>
+    <div id="cardData" data-obj-id="{{ obj.id }}">
+
+        <!-- Block 1: Position -->
+        <div id="block1-position" class="block-position"></div>
+
+        <!-- Block 2: Price Range Bar -->
+        <div id="block2-range" class="block-range">
+            <div class="range-labels-top">
+                <span id="rangeLowLabel"></span>
+                <span id="rangeHighLabel"></span>
+            </div>
+            <div class="range-bar-wrapper" id="rangeBarWrapper">
+                <div class="range-fill-bg" id="rangeFillBg"></div>
+                <div class="range-candles" id="rangeCandles"></div>
+                <div class="range-markers" id="rangeMarkers">
+                    <div class="marker-entry" id="markerEntry">
+                        <span class="marker-label"></span>
+                        <span class="marker-sublabel"></span>
+                        <div class="tooltip" id="entryTooltip"></div>
+                    </div>
+                    <div class="marker-current" id="markerCurrent">
+                        <span class="marker-label"></span>
+                        <span class="marker-sublabel"></span>
+                        <div class="tooltip" id="currentTooltip"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="range-meta" id="rangeMeta"></div>
         </div>
-        <div id="chartSummary" style="margin-bottom:0.5rem; font-size:14px; color:var(--text-muted);"></div>
-        <canvas id="chart" width="600" height="300" style="border:1px solid var(--border-color); border-radius:6px; background:var(--bg-card);"></canvas>
-        <div id="chartError" style="display:none; color:#c00; margin-top:0.5rem;"></div>
+
+        <!-- Emoji rows -->
+        <div class="emoji-summary">
+            {{ emoji_entry(entry, obj.data.get('leverage', 10)) }}
+        </div>
+        <div class="emoji-summary">
+            {{ emoji_upd(entry, upd, obj.data.get('leverage', 10)) }}
+        </div>
+
+        <!-- Block 3: Days Distribution -->
+        <div id="block3-distribution" class="block-distribution">
+            <span class="dn-label" id="dnLabel"></span>
+            <div class="dist-bar-wrapper" id="distBarWrapper">
+                <div class="dist-dn" id="distDn"></div>
+                <div class="dist-dp" id="distDp"></div>
+                <div class="dist-critical-markers" id="distCriticalMarkers"></div>
+                <span class="da-label" id="daLabel"></span>
+            </div>
+            <span class="dp-label" id="dpLabel"></span>
+        </div>
+
+        <!-- Block 4: current_candle_ohlc (hidden) -->
+        <div id="current_candle_ohlc" style="display:none;"></div>
+
+        <!-- Block 5: Critical Levels -->
+        <div id="block5-critical" class="block-critical" style="display:none;">
+            <h4>CRITICAL LEVELS</h4>
+            <div class="critical-scroll">
+                <table class="critical-table" id="criticalTable">
+                    <thead>
+                        <tr>
+                            <th>Price</th>
+                            <th>Level</th>
+                            <th>Vol (nom)</th>
+                            <th>Vol ($)</th>
+                            <th>Date</th>
+                            <th>vs Entry</th>
+                        </tr>
+                    </thead>
+                    <tbody id="criticalTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Deviation Chart -->
+        <div id="dvcContainer" style="margin-top:1rem;">
+            <h3>График отклонения цены</h3>
+            <div id="dvcLoader" style="display:flex; align-items:center; gap:8px; margin-bottom:0.5rem; font-size:14px; color:var(--text-muted);">
+                <span id="dvcSpinner" style="display:inline-block; width:16px; height:16px; border:2px solid var(--border-color); border-top-color:#1e88e5; border-radius:50%; animation:spin 0.8s linear infinite;"></span>
+                <span>Загрузка данных… <span id="dvcTimer">0</span> мс</span>
+            </div>
+            <div id="dvcSummary" style="margin-bottom:0.5rem; font-size:14px; color:var(--text-muted);"></div>
+            <canvas id="dvcChart" width="600" height="300" style="border:1px solid var(--border-color); border-radius:6px; background:var(--bg-card);"></canvas>
+            <div id="dvcError" style="display:none; color:#c00; margin-top:0.5rem;"></div>
+        </div>
+
+        <!-- OHLC Chart -->
+        <div id="ohlcChartContainer" style="margin-top:1rem;">
+            <div id="ohlcLoader" style="display:flex; align-items:center; gap:8px; margin-bottom:0.5rem; font-size:14px; color:var(--text-muted);">
+                <span id="ohlcSpinner" style="display:inline-block; width:16px; height:16px; border:2px solid var(--border-color); border-top-color:#1e88e5; border-radius:50%; animation:spin 0.8s linear infinite;"></span>
+                <span>OHLC загружается...</span>
+            </div>
+            <div id="ohlcNoData" style="display:none; color:#c00; margin-bottom:0.5rem;">No data file — нажмите обновить для создания</div>
+            <canvas id="ohlcChart" width="600" height="300" style="border:1px solid var(--border-color); border-radius:6px; background:var(--bg-card); display:none;"></canvas>
+            <div id="ohlcError" style="display:none; color:#c00; margin-top:0.5rem;"></div>
+        </div>
+
     </div>
     {% endif %}
 </div>
 
 <style>
+/* Block 1: Position */
+.block-position {
+    font-size: 11px;
+    padding: 8px 12px;
+    background: var(--bg-card);
+    border-radius: 6px;
+    margin-bottom: 8px;
+}
+.block-position .pos-row-1, .block-position .pos-row-2 {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    white-space: nowrap;
+}
+.block-position .pos-row-1 {
+    margin-bottom: 6px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border-color);
+}
+.block-position .low-label { color: var(--color-loss); font-weight: bold; }
+.block-position .high-label { color: var(--color-profit); font-weight: bold; }
+.block-position .range-label { color: var(--text-muted); }
+.block-position .entry { color: #9333ea; }
+.block-position .current { color: #3b82f6; }
+.block-position .pnl { font-weight: bold; }
+.block-position .leverage { color: #f59e0b; }
+.block-position .roe { font-weight: bold; }
+.block-position .positive { color: var(--color-profit); }
+.block-position .negative { color: var(--color-loss); }
+
+/* Block 2: Range Bar */
+.block-range {
+    margin-bottom: 8px;
+    padding: 8px 12px;
+    background: var(--bg-card);
+    border-radius: 6px;
+}
+.range-labels-top {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #888;
+    margin-bottom: 4px;
+}
+.range-labels-top span:first-child { color: #dc2626; }
+.range-labels-top span:last-child { color: #16a34a; }
+
+.range-bar-wrapper {
+    position: relative;
+    height: 50px;
+    background: #f3f4f6;
+    border-radius: 4px;
+    overflow: visible;
+}
+.range-fill-bg {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    opacity: 0.25;
+    z-index: 1;
+    border-radius: 4px;
+}
+.range-fill-bg.positive { background: #22c55e; }
+.range-fill-bg.negative { background: #ef4444; }
+
+.range-candles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+}
+.mini-bar {
+    position: absolute;
+    width: 2px;
+    height: 30px;
+    background: #6b7280;
+    opacity: 0.4;
+    transform: translateX(-50%);
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+.mini-bar:hover { opacity: 0.8; }
+.mini-bar .tooltip {
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1f2937;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 9px;
+    white-space: nowrap;
+    z-index: 50;
+    margin-bottom: 4px;
+}
+.mini-bar:hover .tooltip { display: block; }
+
+.range-markers {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    z-index: 10;
+    pointer-events: none;
+}
+.marker-entry, .marker-current {
+    position: absolute;
+    top: 8px;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 10px;
+    white-space: nowrap;
+    pointer-events: auto;
+    cursor: pointer;
+}
+.marker-entry { color: #9333ea; }
+.marker-current { color: #3b82f6; }
+.marker-label { font-weight: bold; }
+.marker-sublabel { font-size: 9px; opacity: 0.7; }
+.marker-entry .tooltip, .marker-current .tooltip {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1f2937;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    white-space: nowrap;
+    z-index: 100;
+    margin-top: 4px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    min-width: 140px;
+}
+.marker-entry:hover .tooltip, .marker-current:hover .tooltip { display: block; }
+.tooltip-row { display: flex; justify-content: space-between; gap: 12px; }
+.tooltip-row span:first-child { color: #9ca3af; }
+.tooltip-row span:last-child { font-weight: 500; }
+
+.range-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    font-size: 10px;
+    color: #888;
+    margin-top: 6px;
+}
+.range-meta span { white-space: nowrap; }
+
+/* Block 3: Distribution */
+.block-distribution {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--bg-card);
+    border-radius: 6px;
+    margin-bottom: 8px;
+}
+.dn-label, .dp-label {
+    font-size: 11px;
+    font-weight: bold;
+    min-width: 45px;
+}
+.dn-label { color: #dc2626; text-align: right; }
+.dp-label { color: #16a34a; text-align: left; }
+
+.dist-bar-wrapper {
+    flex: 1;
+    display: flex;
+    height: 20px;
+    border-radius: 4px;
+    overflow: visible;
+    position: relative;
+}
+.dist-dn {
+    height: 100%;
+    background: var(--color-loss-bg);
+    transition: width 0.3s;
+}
+.dist-dp {
+    height: 100%;
+    background: var(--color-profit-bg);
+    transition: width 0.3s;
+}
+.da-label {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--bg-card);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: bold;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    z-index: 10;
+}
+
+/* Critical Level Markers on Distribution Bar */
+.dist-critical-markers {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 5;
+}
+.critical-marker {
+    position: absolute;
+    top: -2px;
+    width: 2px;
+    height: calc(100% + 4px);
+    cursor: pointer;
+    pointer-events: auto;
+}
+.critical-marker::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 6px solid var(--marker-color);
+}
+.critical-marker .marker-tooltip {
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1f2937;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 9px;
+    white-space: nowrap;
+    margin-bottom: 4px;
+    z-index: 20;
+}
+.critical-marker:hover .marker-tooltip { display: block; }
+
+.critical-marker.level-low { --marker-color: #dc2626; }
+.critical-marker.level-min-close { --marker-color: #f97316; }
+.critical-marker.level-current { --marker-color: #3b82f6; }
+.critical-marker.level-entry { --marker-color: #9333ea; }
+.critical-marker.level-max-close { --marker-color: #22c55e; }
+.critical-marker.level-high { --marker-color: #16a34a; }
+.critical-marker.level-min-volume { --marker-color: #f59e0b; }
+.critical-marker.level-max-volume { --marker-color: #8b5cf6; }
+
+/* Block 5: Critical Levels */
+.block-critical {
+    margin-bottom: 8px;
+    padding: 8px 12px;
+    background: var(--bg-card);
+    border-radius: 6px;
+}
+.block-critical h4 {
+    margin: 0 0 8px 0;
+    font-size: 11px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.critical-scroll {
+    overflow-x: auto;
+}
+.critical-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10px;
+}
+.critical-table th {
+    background: #f3f4f6;
+    padding: 6px 8px;
+    text-align: left;
+    font-weight: 600;
+    color: #666;
+    border-bottom: 2px solid #e5e7eb;
+}
+.critical-table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid #f3f4f6;
+}
+.critical-table tr:hover td { background: #fafafa; }
+.critical-table .level-low { color: #dc2626; font-weight: bold; }
+.critical-table .level-high { color: #16a34a; font-weight: bold; }
+.critical-table .level-entry { color: #9333ea; font-weight: bold; }
+.critical-table .level-current { color: #3b82f6; font-weight: bold; }
+.critical-table .level-min-volume { color: #f59e0b; }
+.critical-table .level-max-volume { color: #8b5cf6; }
+.critical-table .positive { color: #16a34a; }
+.critical-table .negative { color: #dc2626; }
+
+/* Responsive */
 @media (max-width: 600px) {
     .data-table { font-size:10px !important; }
     .data-table td { padding:2px 3px !important; }
-    #chart { width:100% !important; height:auto !important; max-width:100vw; }
+    #dvcChart { width:100% !important; height:auto !important; max-width:100vw; }
     .emoji-summary { font-size:8px !important; gap:2px !important; padding:0.2rem !important; }
     .emoji-summary span { min-width:15px !important; }
+    .critical-table { font-size: 9px; }
+    .critical-table th, .critical-table td { padding: 4px 6px; }
 }
 @media (max-width: 400px) {
     .emoji-summary { font-size:7px !important; gap:1px !important; }
@@ -77,166 +445,349 @@
 
 <script>
 (function(){
-    const OBJ_ID = {{ obj.id | tojson }};
+    const OBJ_ID = document.getElementById('cardData')?.dataset?.objId;
+    if (!OBJ_ID) return;
+
     const API_URL = '/graphics/chart/' + OBJ_ID;
-    const canvas = document.getElementById('chart');
-    const ctx = canvas.getContext('2d');
-    const W = canvas.width, H = canvas.height;
-    const pad = { l:55, r:50, t:15, b:40 };
-    const w = W - pad.l - pad.r;
-    const h = H - pad.t - pad.b;
+    let cardData = null;
 
-    function drawChart(data) {
-        ctx.clearRect(0, 0, W, H);
-        const ys = data.map(d => d.deviation_percent);
-        const minY = Math.min(...ys);
-        const maxY = Math.max(...ys);
-        const rangeY = maxY - minY || 1;
-        const entry_price = data[0]?.close || 0;
+    // Range Bar rendering
+    function renderRangeBar(data) {
+        const { chart, summary } = data;
+        if (!chart || !summary) return;
 
-ctx.strokeStyle = '#aaa';
-ctx.lineWidth = 1;
-const yZero = pad.t + h * (maxY / rangeY);
-ctx.beginPath();
-ctx.moveTo(pad.l, yZero); ctx.lineTo(pad.l + w, yZero);
-ctx.stroke();
+        const prices = chart.map(p => p.close);
+        const minPrice = Math.min(...prices);
+        const maxPrice = Math.max(...prices);
+        const priceRange = maxPrice - minPrice || 1;
 
-const steps = 5;
-for (let i = 0; i <= steps; i++) {
-    const pct = minY + (rangeY / steps) * i;
-    const y = pad.t + h - (i / steps) * h;
-    const price = entry_price * (1 + pct / 100);
-    ctx.strokeStyle = '#eee';
-    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + w, y); ctx.stroke();
-    ctx.fillStyle = '#aaa';
-    ctx.font = '9px sans-serif';
-    ctx.fillText(pct.toFixed(2) + '%', 2, y + 3);
-    ctx.fillText(price.toFixed(4), pad.l + w + 5, y + 3);
-}
+        // Calculate positions
+        const entryPct = ((parseFloat(summary.entry_price) - minPrice) / priceRange) * 100;
+        const currentPct = ((parseFloat(summary.current_price) - minPrice) / priceRange) * 100;
+        const fillLeft = Math.min(entryPct, currentPct);
+        const fillWidth = Math.abs(currentPct - entryPct);
+        const isPositive = parseFloat(summary.current_price) >= parseFloat(summary.entry_price);
 
-ctx.setLineDash([4, 3]);
-ctx.strokeStyle = '#9333ea';
-ctx.lineWidth = 1.5;
-ctx.beginPath();
-ctx.moveTo(pad.l, yZero);
-ctx.lineTo(pad.l + w, yZero);
-ctx.stroke();
-ctx.setLineDash([]);
-ctx.fillStyle = '#aa66ee';
-ctx.font = '9px sans-serif';
-ctx.fillText('Entry: 0%', pad.l + 4, yZero - 4);
+        // Fill background
+        const fillBg = document.getElementById('rangeFillBg');
+        fillBg.style.left = fillLeft + '%';
+        fillBg.style.width = fillWidth + '%';
+        fillBg.className = 'range-fill-bg ' + (isPositive ? 'positive' : 'negative');
 
-        ctx.lineWidth = 2;
-        data.forEach((d, i) => {
-            const x = pad.l + (i / (data.length - 1 || 1)) * w;
-            const y = pad.t + h - ((d.deviation_percent - minY) / rangeY) * h;
-            if (i > 0) {
-                const px = pad.l + ((i-1) / (data.length - 1 || 1)) * w;
-                const py = pad.t + h - ((data[i-1].deviation_percent - minY) / rangeY) * h;
-                ctx.strokeStyle = d.profitable ? '#16a34a' : '#dc2626';
-                ctx.beginPath();
-                ctx.moveTo(px, py);
-                ctx.lineTo(x, y);
-                ctx.stroke();
-            }
-            ctx.fillStyle = d.profitable ? '#16a34a' : '#dc2626';
-            ctx.beginPath();
-            ctx.arc(x, y, 3, 0, Math.PI * 2);
-            ctx.fill();
+        // Mini bars for each candle
+        const candlesDiv = document.getElementById('rangeCandles');
+        candlesDiv.innerHTML = '';
+        chart.forEach((p, i) => {
+            const pricePct = ((p.close - minPrice) / priceRange) * 100;
+            const bar = document.createElement('div');
+            bar.className = 'mini-bar';
+            bar.style.left = pricePct + '%';
+            bar.innerHTML = '<div class="tooltip">' +
+                '<div>' + p.date + '</div>' +
+                '<div>Close: ' + p.close + '</div>' +
+                (p.volume ? '<div>Vol: ' + (p.volume/1000000).toFixed(2) + 'M</div>' : '') +
+                '</div>';
+            candlesDiv.appendChild(bar);
         });
 
-        ctx.fillStyle = '#aaa';
-        ctx.font = '11px sans-serif';
-        const step = Math.max(1, Math.ceil(data.length / 10));
-        data.forEach((d, i) => {
-            if (i % step === 0) {
-                const x = pad.l + (i / (data.length - 1 || 1)) * w;
-                ctx.save();
-                ctx.translate(x, pad.t + h + 12);
-                ctx.rotate(-Math.PI / 7);
-                ctx.fillText(d.date, 0, 0);
-                ctx.restore();
-            }
+        // Markers
+        const entryMarker = document.getElementById('markerEntry');
+        const currentMarker = document.getElementById('markerCurrent');
+
+        entryMarker.style.left = entryPct + '%';
+        entryMarker.querySelector('.marker-label').textContent = '▲ Entry: ' + summary.entry_price;
+        entryMarker.querySelector('.marker-sublabel').textContent = summary.entry_date + ' | ' + summary.roe_pct + '% ROE';
+
+        currentMarker.style.left = currentPct + '%';
+        currentMarker.querySelector('.marker-label').textContent = '▲ ' + summary.current_price;
+        currentMarker.querySelector('.marker-sublabel').textContent = 'today | ' + summary.roe_pct + '% ROE';
+
+        // Tooltips content
+        document.getElementById('entryTooltip').innerHTML = buildEntryTooltip(summary);
+        document.getElementById('currentTooltip').innerHTML = buildCurrentTooltip(summary, chart);
+
+        // Range meta
+        const meta = document.getElementById('rangeMeta');
+        meta.innerHTML = '<span>Range: +' + summary.max_high_pct + '% (' + summary.range_days + ' days)</span>' +
+            '<span>Leverage: ' + summary.leverage + 'x</span>' +
+            '<span>ROE: ' + summary.roe_pct + '%</span>';
+    }
+
+    function buildEntryTooltip(s) {
+        return '<div class="tooltip-row"><span>Entry Price</span><span>' + s.entry_price + '</span></div>' +
+            '<div class="tooltip-row"><span>Entry Date</span><span>' + s.entry_date + '</span></div>' +
+            '<div class="tooltip-row"><span>vs Current</span><span class="' + (parseFloat(s.roe_pct) >= 0 ? 'positive' : 'negative') + '">' + s.roe_pct + '%</span></div>';
+    }
+
+    function buildCurrentTooltip(s, chart) {
+        const lastCandle = chart[chart.length - 1];
+        return '<div class="tooltip-row"><span>Current</span><span>' + s.current_price + '</span></div>' +
+            '<div class="tooltip-row"><span>ROE</span><span class="' + (parseFloat(s.roe_pct) >= 0 ? 'positive' : 'negative') + '">' + s.roe_pct + '%</span></div>' +
+            '<div class="tooltip-row"><span>ROE USDT</span><span class="' + (parseFloat(s.roe_usdt) >= 0 ? 'positive' : 'negative') + '">' + s.roe_usdt + '</span></div>' +
+            (lastCandle && lastCandle.volume ? '<div class="tooltip-row"><span>Volume</span><span>' + (lastCandle.volume/1000000).toFixed(2) + 'M</span></div>' : '');
+    }
+
+    // Distribution bar rendering
+    function renderDistributionBar(data) {
+        const { stats, critical_levels, summary } = data;
+        if (!stats) return;
+
+        const total = stats.dn + stats.dp + (stats.dn_equal || 0);
+        const dnPct = total > 0 ? (stats.dn / total * 100) : 50;
+        const dpPct = total > 0 ? (stats.dp / total * 100) : 50;
+
+        document.getElementById('dnLabel').textContent = 'Dn(' + stats.dn + ')';
+        document.getElementById('dpLabel').textContent = 'Dp(' + stats.dp + ')';
+        document.getElementById('daLabel').textContent = 'Da: ' + stats.da;
+
+        document.getElementById('distDn').style.width = dnPct + '%';
+        document.getElementById('distDp').style.width = dpPct + '%';
+
+        // Render critical level markers on distribution bar
+        const markersContainer = document.getElementById('distCriticalMarkers');
+        if (markersContainer && critical_levels && summary) {
+            markersContainer.innerHTML = '';
+
+            const maxHigh = parseFloat(summary.max_high);
+            const maxLow = parseFloat(summary.max_low);
+            const priceRange = maxHigh - maxLow;
+
+            critical_levels.forEach(level => {
+                const price = parseFloat(level.price);
+                if (priceRange > 0) {
+                    const positionPct = ((price - maxLow) / priceRange) * 100;
+
+                    const marker = document.createElement('div');
+                    marker.className = 'critical-marker level-' + level.level.toLowerCase().replace(' ', '-');
+                    marker.style.left = positionPct + '%';
+                    marker.style.setProperty('--marker-color', getMarkerColor(level.level));
+
+                    marker.innerHTML = '<div class="marker-tooltip">' +
+                        '<strong>' + level.level + '</strong><br/>' +
+                        'Price: ' + level.price + '<br/>' +
+                        'vs Entry: ' + (level.vs_entry >= 0 ? '+' : '') + level.vs_entry + '%' +
+                        '</div>';
+
+                    markersContainer.appendChild(marker);
+                }
+            });
+        }
+    }
+
+    function getMarkerColor(level) {
+        const colors = {
+            'Low': '#dc2626',
+            'Min Close': '#f97316',
+            'Current': '#3b82f6',
+            'Entry': '#9333ea',
+            'Max Close': '#22c55e',
+            'High': '#16a34a',
+            'Min Volume': '#f59e0b',
+            'Max Volume': '#8b5cf6'
+        };
+        return colors[level] || '#888888';
+    }
+
+    // Critical levels rendering
+    function renderCriticalLevels(data) {
+        const { critical_levels, summary } = data;
+        if (!critical_levels || critical_levels.length === 0) return;
+
+        const tbody = document.getElementById('criticalTableBody');
+        tbody.innerHTML = '';
+
+        critical_levels.forEach(level => {
+            const tr = document.createElement('tr');
+            const vsClass = level.vs_entry >= 0 ? 'positive' : 'negative';
+            const levelClass = 'level-' + level.level.toLowerCase().replace(' ', '-');
+
+            tr.innerHTML = '<td>' + level.price + '</td>' +
+                '<td class="' + levelClass + '">' + level.level + '</td>' +
+                '<td>' + (level.vol ? level.vol.toLocaleString() : '—') + '</td>' +
+                '<td>' + (level.vol_usd ? '$' + level.vol_usd.toLocaleString() : '—') + '</td>' +
+                '<td>' + level.date + '</td>' +
+                '<td class="' + vsClass + '">' + (level.vs_entry >= 0 ? '+' : '') + level.vs_entry + '%</td>';
+            tbody.appendChild(tr);
         });
+
+        document.getElementById('block5-critical').style.display = 'block';
+    }
+
+    // Block 1: Position
+    function renderBlock1(data) {
+        const { summary, emoji_upd } = data;
+        if (!summary) return;
+
+        const isPositive = parseFloat(summary.roe_pct) >= 0;
+        const emoji = emoji_upd?.result || (isPositive ? '🟢' : '🔴');
+        const pnlClass = isPositive ? 'positive' : 'negative';
+
+        document.getElementById('block1-position').innerHTML =
+            '<div class="pos-row-1">' +
+                '<span class="low-label">Low: ' + summary.max_low + ' (' + summary.max_low_pct + '%)</span>' +
+                '<span class="range-label">Range: +' + summary.range_pct + '% (' + summary.range_days + ' days)</span>' +
+                '<span class="high-label">High: ' + summary.max_high + ' (' + summary.max_high_pct + '%)</span>' +
+            '</div>' +
+            '<div class="pos-row-2">' +
+                '<span class="entry">Entry: ' + summary.entry_price + '</span>' +
+                '<span class="current">Current: ' + summary.current_price + '</span>' +
+                '<span class="pnl ' + pnlClass + '">PnL: ' + summary.total_deviation_usdt + ' (' + summary.total_deviation_percent + '%)</span>' +
+                '<span class="leverage">' + summary.leverage + 'x</span>' +
+                '<span class="roe ' + pnlClass + '">ROE: ' + summary.roe_usdt + ' USDT (' + summary.roe_pct + '%)' + emoji + '</span>' +
+            '</div>';
+
+        // Range labels for Block 2
+        document.getElementById('rangeLowLabel').textContent = 'Low: ' + summary.max_low + ' (' + summary.max_low_pct + '%)';
+        document.getElementById('rangeHighLabel').textContent = 'High: ' + summary.max_high + ' (' + summary.max_high_pct + '%)';
+    }
+
+    // Existing deviation chart
+    const dvcCanvas = document.getElementById('dvcChart');
+    if (dvcCanvas) {
+        const dvcCtx = dvcCanvas.getContext('2d');
+        const W = dvcCanvas.width, H = dvcCanvas.height;
+        const pad = { l:55, r:50, t:15, b:40 };
+        const w = W - pad.l - pad.r;
+        const h = H - pad.t - pad.b;
+
+        function drawDvcChart(chartData) {
+            dvcCtx.clearRect(0, 0, W, H);
+            const ys = chartData.map(d => d.deviation_percent);
+            const minY = Math.min(...ys);
+            const maxY = Math.max(...ys);
+            const rangeY = maxY - minY || 1;
+            const entry_price = chartData[0]?.close || 0;
+
+            dvcCtx.strokeStyle = '#aaa';
+            dvcCtx.lineWidth = 1;
+            const yZero = pad.t + h * (maxY / rangeY);
+            dvcCtx.beginPath();
+            dvcCtx.moveTo(pad.l, yZero); dvcCtx.lineTo(pad.l + w, yZero);
+            dvcCtx.stroke();
+
+            const steps = 5;
+            for (let i = 0; i <= steps; i++) {
+                const pct = minY + (rangeY / steps) * i;
+                const y = pad.t + h - (i / steps) * h;
+                const price = entry_price * (1 + pct / 100);
+                dvcCtx.strokeStyle = '#eee';
+                dvcCtx.beginPath(); dvcCtx.moveTo(pad.l, y); dvcCtx.lineTo(pad.l + w, y); dvcCtx.stroke();
+                dvcCtx.fillStyle = '#aaa';
+                dvcCtx.font = '9px sans-serif';
+                dvcCtx.fillText(pct.toFixed(2) + '%', 2, y + 3);
+                dvcCtx.fillText(price.toFixed(4), pad.l + w + 5, y + 3);
+            }
+
+            dvcCtx.setLineDash([4, 3]);
+            dvcCtx.strokeStyle = '#9333ea';
+            dvcCtx.lineWidth = 1.5;
+            dvcCtx.beginPath();
+            dvcCtx.moveTo(pad.l, yZero);
+            dvcCtx.lineTo(pad.l + w, yZero);
+            dvcCtx.stroke();
+            dvcCtx.setLineDash([]);
+            dvcCtx.fillStyle = '#aa66ee';
+            dvcCtx.font = '9px sans-serif';
+            dvcCtx.fillText('Entry: 0%', pad.l + 4, yZero - 4);
+
+            dvcCtx.lineWidth = 2;
+            chartData.forEach((d, i) => {
+                const x = pad.l + (i / (chartData.length - 1 || 1)) * w;
+                const y = pad.t + h - ((d.deviation_percent - minY) / rangeY) * h;
+                if (i > 0) {
+                    const px = pad.l + ((i-1) / (chartData.length - 1 || 1)) * w;
+                    const py = pad.t + h - ((chartData[i-1].deviation_percent - minY) / rangeY) * h;
+                    dvcCtx.strokeStyle = d.profitable ? '#16a34a' : '#dc2626';
+                    dvcCtx.beginPath();
+                    dvcCtx.moveTo(px, py);
+                    dvcCtx.lineTo(x, y);
+                    dvcCtx.stroke();
+                }
+                dvcCtx.fillStyle = d.profitable ? '#16a34a' : '#dc2626';
+                dvcCtx.beginPath();
+                dvcCtx.arc(x, y, 3, 0, Math.PI * 2);
+                dvcCtx.fill();
+            });
+
+            dvcCtx.fillStyle = '#aaa';
+            dvcCtx.font = '11px sans-serif';
+            const step = Math.max(1, Math.ceil(chartData.length / 10));
+            chartData.forEach((d, i) => {
+                if (i % step === 0) {
+                    const x = pad.l + (i / (chartData.length - 1 || 1)) * w;
+                    dvcCtx.save();
+                    dvcCtx.translate(x, pad.t + h + 12);
+                    dvcCtx.rotate(-Math.PI / 7);
+                    dvcCtx.fillText(d.date, 0, 0);
+                    dvcCtx.restore();
+                }
+            });
+        }
+
+        // Expose for use
+        window.drawDvcChart = drawDvcChart;
     }
 
     async function load() {
         const start = performance.now();
-        const timerEl = document.getElementById('loaderTimer');
+        const timerEl = document.getElementById('dvcTimer');
         const timerTick = setInterval(() => {
-            timerEl.textContent = Math.round(performance.now() - start);
+            if (timerEl) timerEl.textContent = Math.round(performance.now() - start);
         }, 50);
 
         try {
             const res = await fetch(API_URL);
             const ms = Math.round(performance.now() - start);
             clearInterval(timerTick);
-            document.getElementById('loaderSpinner').style.display = 'none';
-            document.getElementById('loaderTimer').parentElement.innerHTML = '<span>Загружено за <b>' + ms + '</b> мс</span>';
+            const spinner = document.getElementById('dvcSpinner');
+            if (spinner) spinner.style.display = 'none';
+            const loaderEl = document.getElementById('dvcLoader');
+            if (loaderEl) loaderEl.innerHTML = '<span>Загружено за <b>' + ms + '</b> мс</span>';
 
             const json = await res.json();
             if (json.error) {
-                document.getElementById('chartError').textContent = json.error;
-                document.getElementById('chartError').style.display = 'block';
+                const errEl = document.getElementById('dvcError');
+                if (errEl) { errEl.textContent = json.error; errEl.style.display = 'block'; }
                 return;
             }
-            const s = json.summary;
-            const sign = n => (n >= 0 ? '+' : '') + n;
-            const summaryDiv = document.createElement('div');
-            summaryDiv.style.cssText = 'overflow-x:auto; white-space:nowrap; font-size:10px; color:#888;';
-            summaryDiv.innerHTML = '<b>' + s.symbol + '</b> Entry:' + s.entry_price + '(' + s.entry_date + ') Current:' + s.current_price + ' Deviation:<b style="color:' + (s.profitable ? '#16a34a' : '#dc2626') + ';">' + sign(s.total_deviation_usdt) + ' USDT (' + sign(s.total_deviation_percent) + '%)</b>';
-            document.getElementById('chartSummary').appendChild(summaryDiv);
 
-        const first = json.chart[0], last = json.chart[json.chart.length - 1];
-        const summaryLine = document.createElement('div');
-        summaryLine.style.cssText = 'margin-top:0.1rem; font-size:10px; color:#999;';
-        summaryLine.textContent = 'Data: ' + first.date + ' → ' + last.date + ' Points: ' + json.chart.length;
-            document.getElementById('chartSummary').appendChild(summaryLine);
+            cardData = json;
 
-            const maxLine = document.createElement('div');
-            maxLine.style.cssText = 'margin-top:0.1rem; font-size:10px; white-space:nowrap; overflow-x:auto;';
-            const negDays = json.chart.filter(d => d.deviation_percent < 0).length;
-            const posDays = json.chart.filter(d => d.deviation_percent > 0).length;
-            const entryDate = new Date(s.entry_date);
-            const today = new Date();
-            const daysAll = Math.floor((today - entryDate) / (1000 * 60 * 60 * 24));
-            maxLine.innerHTML = '<span style="color:#16a34a;">Dp+(' + posDays + ')</span> <span style="color:#16a34a;">Max: +' + s.max_usdt + ' USDT (' + s.max_pct + '%)</span> <span style="color:#dc2626;">Dn-(' + negDays + ')</span> <span style="color:#dc2626;">Min: ' + s.min_usdt + ' USDT (' + s.min_pct + '%)</span> <span>Da(' + daysAll + ')</span>';
-            document.getElementById('chartSummary').appendChild(maxLine);
+            // Render new blocks
+            renderBlock1(json);
+            renderRangeBar(json);
+            renderDistributionBar(json);
+            renderCriticalLevels(json);
 
+            // Hidden ohlc data
             if (json.ohlc) {
-                const ohlcDiv = document.createElement('div');
-                ohlcDiv.style.cssText = 'margin-top:0.2rem; padding:0.2rem; background:var(--emoji-bg); border-radius:6px; font-size:10px; white-space:nowrap; overflow-x:auto;';
-                const cur = json.ohlc.current;
-                ohlcDiv.innerHTML = '<span style="color:#888;">Тело:</span> ' + cur.body + ' (' + cur.body_pct + '%) <span style="color:#888;">Верх фитиль:</span> ' + cur.upper_wick + ' <span style="color:#888;">Низ фитиль:</span> ' + cur.lower_wick + ' <span style="color:#888;">Волатильность:</span> ' + json.ohlc.max.volatility;
-                document.getElementById('chartSummary').appendChild(ohlcDiv);
-
-                const priceDiv = document.createElement('div');
-                priceDiv.style.cssText = 'margin-top:0.2rem; padding:0.2rem; background:var(--emoji-bg); border-radius:6px; font-size:10px; white-space:nowrap; overflow-x:auto;';
-                priceDiv.innerHTML = '<span style="color:#16a34a;">Max: ' + json.ohlc.max.price + ' (' + json.ohlc.max.pct + '%, x' + json.ohlc.max.pct_x + ')</span> <span style="color:#dc2626;">Min: ' + json.ohlc.min.price + ' (' + json.ohlc.min.pct + '%, x' + json.ohlc.min.pct_x + ')</span>';
-                document.getElementById('chartSummary').appendChild(priceDiv);
+                document.getElementById('current_candle_ohlc').textContent = JSON.stringify(json.ohlc);
             }
 
-            if (json.stats) {
-                const statsDiv = document.createElement('div');
-                statsDiv.style.cssText = 'margin-top:0.2rem; padding:0.2rem; background:var(--emoji-bg); border-radius:6px; font-size:10px; white-space:nowrap; overflow-x:auto;';
-                statsDiv.innerHTML = '<span style="color:#dc2626;">Dn(' + json.stats.dn + ')</span> <span style="color:#16a34a;">Dp(' + json.stats.dp + ')</span> <span>Da(' + json.stats.da + ')</span>';
-                document.getElementById('chartSummary').appendChild(statsDiv);
+            // Draw existing chart
+            if (window.drawDvcChart && json.chart) {
+                window.drawDvcChart(json.chart);
             }
 
-            drawChart(json.chart);
+            // Load OHLC chart
+            loadOhlcChart(OBJ_ID);
+
         } catch(e) {
             clearInterval(timerTick);
-            document.getElementById('chartError').textContent = 'Ошибка загрузки: ' + e.message;
-            document.getElementById('chartError').style.display = 'block';
+            const errEl = document.getElementById('dvcError');
+            if (errEl) { errEl.textContent = 'Ошибка загрузки: ' + e.message; errEl.style.display = 'block'; }
         }
     }
-    load();
+
+    if (document.getElementById('dvcContainer')) {
+        load();
+    }
 })();
 
 async function refreshCard(objId, btn) {
     const timerEl = document.getElementById('cardRefreshTimer');
     const start = Date.now();
-    
+
     function updateTimer() {
         const elapsed = Date.now() - start;
         if (timerEl) {
@@ -244,36 +795,172 @@ async function refreshCard(objId, btn) {
             timerEl.textContent = elapsed + 'мс';
         }
     }
-    
+
     const timer = setInterval(updateTimer, 50);
-    
+
     try {
         const res = await fetch('/graphics/chart/' + objId);
         const json = await res.json();
         clearInterval(timer);
-        
+
         const ms = Date.now() - start;
-        
+
         if (timerEl) {
             timerEl.style.display = 'inline';
             timerEl.textContent = json.error ? '❌' : ms + 'мс';
         }
-        
+
         if (!json.error) {
+            fetch('/processor_1d/create/' + objId, {method: 'POST'});
             setTimeout(() => location.reload(), 800);
         }
     } catch(e) {
         clearInterval(timer);
-        if (timerEl) {
-            timerEl.textContent = '❌';
-            timerEl.style.display = 'inline';
-        }
+        if (timerEl) { timerEl.textContent = '❌'; timerEl.style.display = 'inline'; }
     }
-    
+
     setTimeout(() => {
         btn.textContent = '🔄';
         if (timerEl) timerEl.style.display = 'none';
     }, 10000);
+}
+
+async function loadOhlcChart(objId) {
+    const loader = document.getElementById('ohlcLoader');
+    const spinner = document.getElementById('ohlcSpinner');
+    const noData = document.getElementById('ohlcNoData');
+    const canvas = document.getElementById('ohlcChart');
+    const errorEl = document.getElementById('ohlcError');
+
+    try {
+        const res = await fetch('/processor_1d/chart/' + objId);
+        const json = await res.json();
+
+        if (!res.ok || json.error === 'No data file') {
+            if (loader) loader.style.display = 'none';
+            if (spinner) spinner.style.display = 'none';
+            if (noData) noData.style.display = 'block';
+            if (canvas) canvas.style.display = 'none';
+            return;
+        }
+
+        if (json.error) {
+            if (loader) loader.style.display = 'none';
+            if (spinner) spinner.style.display = 'none';
+            if (errorEl) { errorEl.textContent = json.error; errorEl.style.display = 'block'; }
+            return;
+        }
+
+        if (loader) loader.style.display = 'none';
+        if (spinner) spinner.style.display = 'none';
+        if (canvas) canvas.style.display = 'block';
+
+        drawOhlcChart(json.days, canvas, json.entry_price);
+    } catch(e) {
+        if (loader) loader.style.display = 'none';
+        if (spinner) spinner.style.display = 'none';
+        if (errorEl) { errorEl.textContent = 'Ошибка: ' + e.message; errorEl.style.display = 'block'; }
+    }
+}
+
+function drawOhlcChart(days, canvas, entryPrice) {
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    const pad = { l:55, r:50, t:15, b:40 };
+    const w = W - pad.l - pad.r;
+    const h = H - pad.t - pad.b;
+
+    if (!days || days.length === 0) return;
+
+    const prices = [];
+    days.forEach(d => {
+        const o = d.ohlc;
+        prices.push(o.high, o.low);
+    });
+
+    const minPrice = Math.min(...prices);
+    const maxPrice = Math.max(...prices);
+    const priceRange = maxPrice - minPrice || 1;
+
+    ctx.clearRect(0, 0, W, H);
+
+    const priceStep = (maxPrice - minPrice) / 5;
+    const pctStep = (maxPrice - entryPrice) / entryPrice * 100 / 5 || 0;
+    for (let i = 0; i <= 5; i++) {
+        const price = minPrice + priceStep * i;
+        const y = pad.t + h - ((price - minPrice) / priceRange) * h;
+        ctx.strokeStyle = '#eee';
+        ctx.beginPath();
+        ctx.moveTo(pad.l, y);
+        ctx.lineTo(pad.l + w, y);
+        ctx.stroke();
+
+        ctx.fillStyle = '#aaa';
+        ctx.font = '9px sans-serif';
+
+        const pctFromEntry = entryPrice ? ((price - entryPrice) / entryPrice * 100) : 0;
+        ctx.fillText((pctFromEntry >= 0 ? '+' : '') + pctFromEntry.toFixed(1) + '%', 2, y + 3);
+        ctx.fillText(price.toFixed(4), pad.l + w + 5, y + 3);
+    }
+
+    if (entryPrice) {
+        const yEntry = pad.t + h - ((entryPrice - minPrice) / priceRange) * h;
+        ctx.setLineDash([4, 3]);
+        ctx.strokeStyle = '#9333ea';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(pad.l, yEntry);
+        ctx.lineTo(pad.l + w, yEntry);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#aa66ee';
+        ctx.font = '9px sans-serif';
+        ctx.fillText('Entry: ' + entryPrice.toFixed(4), pad.l + 4, yEntry - 4);
+    }
+
+    const candleWidth = Math.max(2, Math.min(15, (w / days.length) - 2));
+    const gap = (w / days.length) - candleWidth;
+
+    days.forEach((d, i) => {
+        const o = d.ohlc;
+        const x = pad.l + (i / days.length) * w + gap / 2;
+
+        const yHigh = pad.t + h - ((o.high - minPrice) / priceRange) * h;
+        const yLow = pad.t + h - ((o.low - minPrice) / priceRange) * h;
+        const yOpen = pad.t + h - ((o.open - minPrice) / priceRange) * h;
+        const yClose = pad.t + h - ((o.close - minPrice) / priceRange) * h;
+
+        const isGreen = o.close > o.open;
+        const color = isGreen ? '#16a34a' : '#dc2626';
+
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x + candleWidth / 2, yHigh);
+        ctx.lineTo(x + candleWidth / 2, yLow);
+        ctx.stroke();
+
+        const bodyTop = Math.min(yOpen, yClose);
+        const bodyHeight = Math.abs(yOpen - yClose) || 1;
+
+        ctx.fillStyle = color;
+        ctx.fillRect(x, bodyTop, candleWidth, bodyHeight);
+    });
+
+    ctx.fillStyle = '#aaa';
+    ctx.font = '11px sans-serif';
+    const dateStep = Math.max(1, Math.ceil(days.length / 10));
+    days.forEach((d, i) => {
+        if (i % dateStep === 0) {
+            const x = pad.l + (i / days.length) * w + candleWidth / 2;
+            ctx.save();
+            ctx.translate(x, pad.t + h + 12);
+            ctx.rotate(-Math.PI / 7);
+            ctx.fillText(d.date, 0, 0);
+            ctx.restore();
+        }
+    });
 }
 </script>
 {% endblock %}
