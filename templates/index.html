@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "macros.html" import emoji_entry, emoji_upd with context %}
 
 {% block title %}Главная - Fundament RF{% endblock %}
 
@@ -20,13 +21,13 @@
         </div>
         
         {% if entry %}
-        <div class="emoji-summary" style="font-size:9px; color:var(--text-muted); white-space:nowrap; text-align:center; display:flex; justify-content:center; gap:2px; width:100%;">
-            <a href="{{ url_for('web.card', obj_id=obj.id) }}" style="text-decoration:none;">🏗️{{ entry.get('number', '—') }} 🚏{{ entry.get('symbol', '—') }} 🧾{{ entry.get('entry_price', '—') }} 📆{{ entry.get('entry_date', '—') }} 🕒{{ entry.get('entry_time', '—') }}дн 🧱{{ entry.get('volume', '—') }} 🫧{{ entry.get('pnl_percent', '—') }} 🪙{{ entry.get('pnl_usdt', '—') }} 📦{{ entry.get('result', '—') }} ⬆️{{ obj.data.get('leverage', 10) }}</a>
+        <div class="emoji-summary">
+            {{ emoji_entry(entry, obj.data.get('leverage', 10)) }}
         </div>
         
         {% if upd and upd.get('current_price') %}
-        <div class="emoji-summary" style="font-size:9px; color:var(--text-muted); white-space:nowrap; text-align:center; display:flex; justify-content:center; gap:2px; width:100%;">
-            <a href="{{ url_for('web.card', obj_id=obj.id) }}" style="text-decoration:none;">🏗️{{ entry.get('number', '—') }} 🚏{{ entry.get('symbol', '—') }} 🧾{{ upd.get('current_price', '—') }} 📆{{ entry.get('entry_date', '—') }} 🕒{{ upd.get('entry_time', '—') }}дн 🧱{{ entry.get('volume', '—') }} 🫧{{ upd.get('pnl_percent', '—') }} 🪙{{ upd.get('pnl_usdt', '—') }} 📦{{ upd.get('result', entry.get('result', '')) }} ⬆️{{ obj.data.get('leverage', 10) }}</a>
+        <div class="emoji-summary">
+            {{ emoji_upd(entry, upd, obj.data.get('leverage', 10)) }}
         </div>
         {% endif %}
         
@@ -66,48 +67,52 @@ let refreshAllRunning = false;
 async function refreshAll() {
     if (refreshAllRunning) return;
     refreshAllRunning = true;
-    
+
     const btn = document.getElementById('refreshAllBtn');
     const cards = document.querySelectorAll('.object-list li');
     const total = cards.length;
     const ids = [];
     const symbols = [];
-    cards.forEach(c => { 
+    cards.forEach(c => {
         if (c.dataset.id) {
             ids.push(c.dataset.id);
-            const emojiLink = c.querySelector('.emoji-summary a');
-            if (emojiLink) {
-                const match = emojiLink.textContent.match(/🚏(\w+)/);
+            const nameLink = c.querySelector('a[href^="/obj/"]');
+            if (nameLink) {
+                const match = nameLink.textContent.match(/^(\w+)/);
                 symbols.push(match ? match[1] : '?');
             } else {
                 symbols.push('?');
             }
         }
     });
-    
+
     btn.textContent = '⏳ 0/' + total;
-    
+
     for (let i = 0; i < total; i++) {
         const objId = ids[i];
         const card = cards[i];
         const timerEl = card.querySelector('.refresh-timer');
-        
+
         btn.textContent = '⏳ ' + (i + 1) + '/' + total + ' ' + symbols[i];
         btn.disabled = true;
-        
+
         if (timerEl) {
             timerEl.style.display = 'inline';
             timerEl.textContent = '⏳';
         }
-        
+
         try {
             const start = Date.now();
             const res = await fetch('/graphics/chart/' + objId);
             const json = await res.json();
             const ms = Date.now() - start;
-            
+
             if (timerEl) {
                 timerEl.textContent = json.error ? '❌' : ms + 'мс';
+            }
+
+            if (!json.error) {
+                fetch('/processor_1d/create/' + objId, {method: 'POST'});
             }
         } catch(e) {
             if (timerEl) {
@@ -115,9 +120,9 @@ async function refreshAll() {
             }
         }
     }
-    
+
     btn.textContent = '✅';
-    
+
     setTimeout(() => {
         refreshAllRunning = false;
         btn.textContent = '🔄';
@@ -154,8 +159,8 @@ async function refreshOne(objId, btn) {
         }
         
         if (!json.error) {
+            fetch('/processor_1d/create/' + objId, {method: 'POST'});
             timerEl.textContent = ms + 'мс';
-            // Ждём 10 сек перед сбросом, затем перезагрузка
             setTimeout(() => {
                 btn.textContent = '🔄';
                 if (timerEl) timerEl.style.display = 'none';

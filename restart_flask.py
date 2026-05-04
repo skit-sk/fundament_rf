@@ -18,7 +18,7 @@ def kill_flask():
                 try:
                     os.kill(int(pid), signal.SIGTERM)
                     print(f"✅ Killed {pid}")
-                except:
+                except ProcessLookupError:
                     pass
     except subprocess.CalledProcessError:
         pass
@@ -26,15 +26,21 @@ def kill_flask():
 
 def start_flask():
     """Запустить Flask"""
-    with open("/tmp/flask.log", "w") as log:
-        proc = subprocess.Popen(
-            [sys.executable, APP_FILE],
-            cwd=PROJECT_DIR,
-            stdout=log,
-            stderr=subprocess.STDOUT
-        )
+    log = open("/tmp/flask.log", "w")
+    proc = subprocess.Popen(
+        [sys.executable, APP_FILE],
+        cwd=PROJECT_DIR,
+        stdout=log,
+        stderr=subprocess.STDOUT
+    )
     time.sleep(1)
-    print(f"✅ Flask started (PID: {proc.pid})")
+    # Проверяем, что процесс запустился
+    if proc.poll() is None:
+        print(f"✅ Flask started (PID: {proc.pid})")
+    else:
+        print(f"❌ Flask failed to start (exit code: {proc.returncode})")
+        log.close()
+        return None
     return proc
 
 def restart():

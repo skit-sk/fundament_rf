@@ -18,6 +18,14 @@ class FundObj:
     @classmethod
     def from_dict(cls, d):
         d = d.copy()
-        d['created_at'] = datetime.fromisoformat(d['created_at'])
-        d['updated_at'] = datetime.fromisoformat(d['updated_at'])
+        try:
+            d['created_at'] = datetime.fromisoformat(d['created_at'])
+        except (ValueError, TypeError):
+            d['created_at'] = datetime.now()
+        
+        try:
+            d['updated_at'] = datetime.fromisoformat(d['updated_at'])
+        except (ValueError, TypeError):
+            d['updated_at'] = datetime.now()
+            
         return cls(**d)

@@ -18,7 +18,7 @@ def _get_1m_price(symbol):
         data = resp.json()
         if data.get("code") == "00000" and data.get("data"):
             return float(data["data"][0][4])
-    except:
+    except Exception:
         pass
     return None
 
@@ -30,7 +30,7 @@ def _get_daily_price(symbol):
         data = resp.json()
         if data.get("code") == "00000" and data.get("data"):
             return float(data["data"][0][4])
-    except:
+    except Exception:
         pass
     return None
 

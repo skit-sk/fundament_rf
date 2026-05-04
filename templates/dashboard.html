@@ -1,0 +1,479 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Fundament RF{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard-header">
+        <h2>📊 Dashboard</h2>
+        <button onclick="location.reload()" class="theme-toggle">🔄 Обновить</button>
+    </div>
+
+    <div class="section">
+        <div class="section-title">📈 KPI
+            <span class="info-btn" data-info="kpi">ℹ️</span>
+        </div>
+        <div class="legend-box" id="legend-kpi">
+            <b>Ключевые показатели портфеля:</b><br>
+            💰 <b>Total PnL</b> — суммарный результат всех сделок в USDT<br>
+            🎯 <b>Win Rate</b> — процент прибыльных сделок (выигрыш / всего)<br>
+            📋 <b>Trades</b> — общее количество сделок<br>
+            📅 <b>Avg Days</b> — среднее время удержания позиции<br>
+            🏆 <b>Best/Worst</b> — лучшая и худшая сделка по PnL<br>
+            📊 <b>Avg PnL</b> — средний результат на одну сделку<br>
+            ⚡ <b>Active</b> — сделки, которые ещё в работе
+        </div>
+        <div class="kpi-row">
+            <div class="kpi-card" style="border-left-color: {{ 'var(--color-profit)' if kpi.total_pnl_usdt >= 0 else 'var(--color-loss)' }}">
+                <span class="kpi-icon">💰</span>
+                <div class="kpi-content">
+                    <div class="kpi-label">Total PnL</div>
+                    <div class="kpi-value" style="color: {{ 'var(--color-profit)' if kpi.total_pnl_usdt >= 0 else 'var(--color-loss)' }}">{{ '+%.2f'|format(kpi.total_pnl_usdt) if kpi.total_pnl_usdt >= 0 else '%.2f'|format(kpi.total_pnl_usdt) }}</div>
+                    <div class="kpi-subvalue">{{ '%.1f'|format(kpi.avg_pnl_percent) }}% avg</div>
+                </div>
+            </div>
+            <div class="kpi-card" style="border-left-color: var(--color-accent)">
+                <span class="kpi-icon">🎯</span>
+                <div class="kpi-content">
+                    <div class="kpi-label">Win Rate</div>
+                    <div class="kpi-value">{{ kpi.win_rate }}%</div>
+                    <div class="kpi-subvalue">{{ kpi.win_count }} / {{ kpi.loss_count }}</div>
+                </div>
+            </div>
+            <div class="kpi-card" style="border-left-color: var(--color-accent)">
+                <span class="kpi-icon">📋</span>
+                <div class="kpi-content">
+                    <div class="kpi-label">Trades</div>
+                    <div class="kpi-value">{{ kpi.total_trades }}</div>
+                    <div class="kpi-subvalue">{{ kpi.active_trades }} active</div>
+                </div>
+            </div>
+            <div class="kpi-card" style="border-left-color: var(--text-muted)">
+                <span class="kpi-icon">📅</span>
+                <div class="kpi-content">
+                    <div class="kpi-label">Avg Days</div>
+                    <div class="kpi-value">{{ kpi.avg_days_active|int }}</div>
+                    <div class="kpi-subvalue">{{ kpi.avg_leverage }}x leverage</div>
+                </div>
+            </div>
+            <div class="kpi-card" style="border-left-color: var(--color-profit)">
+                <span class="kpi-icon">🏆</span>
+                <div class="kpi-content">
+                    <div class="kpi-label">Best Trade</div>
+                    <div class="kpi-value">{{ kpi.best_trade.symbol if kpi.best_trade else '—' }}</div>
+                    <div class="kpi-subvalue">{{ '+%.2f'|format(kpi.best_trade.pnl_usdt) if kpi.best_trade and kpi.best_trade.pnl_usdt >= 0 else '%.2f'|format(kpi.best_trade.pnl_usdt if kpi.best_trade else 0) }}</div>
+                </div>
+            </div>
+            <div class="kpi-card" style="border-left-color: var(--color-loss)">
+                <span class="kpi-icon">📉</span>
+                <div class="kpi-content">
+                    <div class="kpi-label">Worst Trade</div>
+                    <div class="kpi-value">{{ kpi.worst_trade.symbol if kpi.worst_trade else '—' }}</div>
+                    <div class="kpi-subvalue">{{ '%.2f'|format(kpi.worst_trade.pnl_usdt if kpi.worst_trade else 0) }}</div>
+                </div>
+            </div>
+            <div class="kpi-card" style="border-left-color: {{ 'var(--color-profit)' if kpi.avg_pnl_usdt >= 0 else 'var(--color-loss)' }}">
+                <span class="kpi-icon">📊</span>
+                <div class="kpi-content">
+                    <div class="kpi-label">Avg PnL</div>
+                    <div class="kpi-value" style="color: {{ 'var(--color-profit)' if kpi.avg_pnl_usdt >= 0 else 'var(--color-loss)' }}">{{ '+%.2f'|format(kpi.avg_pnl_usdt) if kpi.avg_pnl_usdt >= 0 else '%.2f'|format(kpi.avg_pnl_usdt) }}</div>
+                    <div class="kpi-subvalue">per trade</div>
+                </div>
+            </div>
+            <div class="kpi-card" style="border-left-color: var(--color-accent)">
+                <span class="kpi-icon">⚡</span>
+                <div class="kpi-content">
+                    <div class="kpi-label">Active</div>
+                    <div class="kpi-value">{{ kpi.active_trades }}</div>
+                    <div class="kpi-subvalue">trades in progress</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">💹 Equity + Drawdown
+            <span class="info-btn" data-info="equity">ℹ️</span>
+        </div>
+        <div class="legend-box" id="legend-equity">
+            <b>График накопленного дохода:</b><br>
+            📈 <b>Cumulative PnL (синяя линия)</b> — сумма всех дневных PnL, накопленная с течением времени. Показывает общий финансовый результат.<br>
+            📉 <b>Drawdown % (красная пунктирная)</b> — на сколько % портфель "просел" от максимума. Чем меньше, тем лучше.<br>
+            <b>Как считается:</b> Drawdown = (Пик − Текущее значение) / Пик × 100%
+        </div>
+        <div class="chart-container">
+            {{ equity_chart|safe }}
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">🎯 Win / Loss
+            <span class="info-btn" data-info="donut">ℹ️</span>
+        </div>
+        <div class="legend-box" id="legend-donut">
+            <b>Соотношение прибыльных и убыточных сделок:</b><br>
+            🟢 <b>Win (зелёный)</b> — сделки закрытые в плюс<br>
+            🔴 <b>Loss (красный)</b> — сделки закрытые в минус<br>
+            <b>Как считается:</b> Win Rate = Wins / Total Trades × 100%
+        </div>
+        <div class="chart-container">
+            {{ donut.svg|safe }}
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">📊 PnL Distribution
+            <span class="info-btn" data-info="distribution">ℹ️</span>
+        </div>
+        <div class="legend-box" id="legend-distribution">
+            <b>Результат каждой сделки:</b><br>
+            🟢 <b>Зелёные столбцы</b> — прибыльные сделки (PnL > 0)<br>
+            🔴 <b>Красные столбцы</b> — убыточные сделки (PnL < 0)<br>
+            <b>По оси X</b> — название сделки<br>
+            <b>По оси Y</b> — PnL в USDT
+        </div>
+        <div class="chart-container">
+            {{ distribution_chart|safe }}
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">🏷️ PnL by Symbol
+            <span class="info-btn" data-info="bysymbol">ℹ️</span>
+        </div>
+        <div class="legend-box" id="legend-bysymbol">
+            <b>Суммарный PnL по каждому инструменту:</b><br>
+            Показывает, какой инструмент принёс больше всего прибыли или убытков.<br>
+            <b>Как считается:</b> Sum всех PnL сделок по данному символу
+        </div>
+        <div class="chart-container">
+            {{ by_symbol_chart|safe }}
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">🗓️ Performance Heatmap — Вариант 1: HTML
+            <span class="info-btn" data-info="heatmapv1">ℹ️</span>
+        </div>
+        <div class="legend-box" id="legend-heatmapv1">
+            <b>Свой HTML-рендеринг:</b><br>
+            Каждый <b>мини-квадратик</b> = один день.<br>
+            Цвет: per-symbol шкала относительно мин/макс ROE этого символа.<br>
+            🟢 Тёмно-зелёный = высокий ROE, 🔴 Тёмно-красный = низкий ROE.
+        </div>
+        <div class="chart-container">
+            <div class="heatmap-var1-container">
+                {{ heatmap_var1_html|safe }}
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">🗓️ Performance Heatmap — Вариант 2: Plotly + Hover
+            <span class="info-btn" data-info="heatmapv2">ℹ️</span>
+        </div>
+        <div class="legend-box" id="legend-heatmapv2">
+            <b>Plotly heatmap с per-symbol шкалой:</b><br>
+            Цвет каждой ячейки нормализован относительно мин/макс ROE символа.<br>
+            При <b>наведении</b> — tooltip с рядами мини-квадратиков и средним ROE.
+        </div>
+        <div class="chart-container" id="heatmap-var2-container">
+            {{ heatmap_chart|safe }}
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">📅 Calendar Heatmap
+            <span class="info-btn" data-info="calendar">ℹ️</span>
+        </div>
+        <div class="legend-box" id="legend-calendar">
+            <b>Доходность по дням — как календарь активности GitHub:</b><br>
+            🟩 <b>Тёмно-зелёный</b> — ROE ≥ +5% (отличный день)<br>
+            🟩 <b>Светло-зелёный</b> — ROE +2%…+5%<br>
+            ⬜ <b>Серый</b> — ROE около 0 (-1%…+1%)<br>
+            🟥 <b>Светло-красный</b> — ROE -2%…-5%<br>
+            🟥 <b>Тёмно-красный</b> — ROE ≤ -5% (плохой день)<br>
+            <b>Как считается:</b> ROE = (Текущая цена − Цена входа) / Цена входа × Leverage × 100%<br>
+            Наведи на квадратик чтобы увидеть детали сделки
+        </div>
+        <div class="calendar-nav">
+            <button onclick="changeMonth(-1)">←</button>
+            <span id="calendar-month" class="calendar-month">{{ calendar_data.month_str }}</span>
+            <button onclick="changeMonth(1)">→</button>
+        </div>
+        <div class="calendar-grid" id="calendar-weekdays">
+            <div class="calendar-weekday">ПН</div>
+            <div class="calendar-weekday">ВТ</div>
+            <div class="calendar-weekday">СР</div>
+            <div class="calendar-weekday">ЧТ</div>
+            <div class="calendar-weekday">ПТ</div>
+            <div class="calendar-weekday">СБ</div>
+            <div class="calendar-weekday">ВС</div>
+        </div>
+        <div class="calendar-grid" id="calendar-days"></div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">🏆 Top / Bottom Trades
+            <span class="info-btn" data-info="toptrades">ℹ️</span>
+        </div>
+        <div class="legend-box" id="legend-toptrades">
+            <b>Лучшие и худшие сделки по PnL USDT:</b><br>
+            🏆 <b>Лучшие</b> — топ-3 сделки с наибольшим положительным PnL<br>
+            📉 <b>Худшие</b> — топ-3 сделки с наибольшим отрицательным PnL<br>
+            <b>Столбцы:</b> Название сделки, PnL в USDT, PnL в %, количество дней в сделке
+        </div>
+        <div class="top-trades-wrapper">
+            <div class="top-trades-column">
+                <h4 style="color: var(--color-profit); margin-bottom: 0.75rem;">🏆 Лучшие</h4>
+                <table class="top-trades-table">
+                    <thead><tr><th>Название</th><th>PnL USDT</th><th>PnL %</th><th>Days</th></tr></thead>
+                    <tbody>
+                        {% for t in top_trades.top %}
+                        <tr>
+                            <td><div class="trade-name">{{ t.name }}</div><div class="trade-symbol">{{ t.symbol }}</div></td>
+                            <td class="{{ 'pnl-positive' if t.pnl_usdt >= 0 else 'pnl-negative' }}">{{ '+%.2f'|format(t.pnl_usdt) if t.pnl_usdt >= 0 else '%.2f'|format(t.pnl_usdt) }}</td>
+                            <td class="{{ 'pnl-positive' if t.pnl_percent >= 0 else 'pnl-negative' }}">{{ '+%.1f'|format(t.pnl_percent) if t.pnl_percent >= 0 else '%.1f'|format(t.pnl_percent) }}%</td>
+                            <td>{{ t.days_active }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="top-trades-column">
+                <h4 style="color: var(--color-loss); margin-bottom: 0.75rem;">📉 Худшие</h4>
+                <table class="top-trades-table">
+                    <thead><tr><th>Название</th><th>PnL USDT</th><th>PnL %</th><th>Days</th></tr></thead>
+                    <tbody>
+                        {% for t in top_trades.bottom %}
+                        <tr>
+                            <td><div class="trade-name">{{ t.name }}</div><div class="trade-symbol">{{ t.symbol }}</div></td>
+                            <td class="{{ 'pnl-positive' if t.pnl_usdt >= 0 else 'pnl-negative' }}">{{ '+%.2f'|format(t.pnl_usdt) if t.pnl_usdt >= 0 else '%.2f'|format(t.pnl_usdt) }}</td>
+                            <td class="{{ 'pnl-positive' if t.pnl_percent >= 0 else 'pnl-negative' }}">{{ '+%.1f'|format(t.pnl_percent) if t.pnl_percent >= 0 else '%.1f'|format(t.pnl_percent) }}%</td>
+                            <td>{{ t.days_active }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="calendar-tooltip" class="calendar-tooltip"></div>
+
+<script>
+const MONTH_NAMES = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+
+let calendarYear = {{ calendar_data.year }};
+let calendarMonth = {{ calendar_data.month }};
+
+const calendarData = {{ calendar_data | tojson | safe }};
+
+document.querySelectorAll('.info-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const infoId = this.dataset.info;
+        const legend = document.getElementById('legend-' + infoId);
+        if (legend) {
+            legend.style.display = legend.style.display === 'none' ? 'block' : 'none';
+        }
+    });
+});
+
+document.querySelectorAll('.legend-box').forEach(box => {
+    box.style.display = 'none';
+});
+
+function getRoeColorJS(roe) {
+    if (roe >= 200) return '#166534';
+    if (roe >= 100) return '#22c55e';
+    if (roe >= 50)  return '#86efac';
+    if (roe >= 10)  return '#bbf7d0';
+    if (roe >= 0)   return '#d1d5db';
+    if (roe >= -10) return '#fca5a5';
+    if (roe >= -50) return '#ef4444';
+    if (roe >= -100) return '#dc2626';
+    return '#991b1b';
+}
+
+function renderCalendar(data) {
+    const container = document.getElementById('calendar-days');
+    const days = data.days;
+    const firstDay = new Date(data.year, data.month - 1, 1).getDay();
+    const offset = firstDay === 0 ? 6 : firstDay - 1;
+
+    let html = '';
+    for (let i = 0; i < offset; i++) {
+        html += '<div class="calendar-day empty"></div>';
+    }
+
+    for (let d = 1; d <= data.days_in_month; d++) {
+        const dayStr = `${data.year}-${String(data.month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const dayData = days[dayStr];
+        const isEmpty = !dayData || dayData.is_empty;
+        const trades = dayData ? dayData.trades : [];
+
+        html += `<div class="calendar-day${isEmpty ? ' empty' : ''}" data-day="${dayStr}">`;
+        html += `<div class="calendar-day-number">${d}</div>`;
+        if (!isEmpty) {
+            trades.sort((a, b) => b.roe_pct - a.roe_pct);
+
+            html += '<div class="calendar-day-trades">';
+            for (let i = 0; i < trades.length; i++) {
+                const trade = trades[i];
+                const color = getRoeColorJS(trade.roe_pct);
+                const barWidth = Math.min(Math.abs(trade.roe_pct) / 5 * 100, 100);
+                const roeSign = trade.roe_pct >= 0 ? '+' : '';
+                const textColor = '#ffffff';
+
+                html += `<div class="calendar-trade-row${trade.roe_pct < 0 ? ' negative' : ''}"
+                    data-symbol="${trade.symbol}"
+                    data-name="${trade.name}"
+                    data-roe="${trade.roe_pct}"
+                    data-pnl="${trade.pnl_usdt}"
+                    data-deviation="${trade.deviation_pct}"
+                    data-profitable="${trade.profitable}"
+                    onmouseenter="showTooltip(event, this)" onmouseleave="hideTooltip()">
+                    <div class="calendar-trade-bar" style="width:${barWidth}%; background:${color}; min-width:20px;">
+                        <span class="calendar-trade-text" style="color:${textColor}">${trade.symbol} ${roeSign}${trade.roe_pct}%</span>
+                    </div>
+                </div>`;
+            }
+            html += '</div>';
+        }
+        html += '</div>';
+    }
+    container.innerHTML = html;
+}
+
+function showTooltip(event, el) {
+    const tooltip = document.getElementById('calendar-tooltip');
+    const symbol = el.dataset.symbol;
+    const name = el.dataset.name;
+    const roe = el.dataset.roe;
+    const pnl = el.dataset.pnl;
+    const deviation = el.dataset.deviation;
+    const profitable = el.dataset.profitable === 'true';
+
+    tooltip.innerHTML = `
+        <div class="tooltip-header">
+            <span>${name}</span>
+            <span>${symbol}</span>
+        </div>
+        <div class="tooltip-row"><span>ROE</span><span class="${roe >= 0 ? 'pnl-positive' : 'pnl-negative'}">${roe >= 0 ? '+' : ''}${roe}%</span></div>
+        <div class="tooltip-row"><span>PnL USDT</span><span class="${pnl >= 0 ? 'pnl-positive' : 'pnl-negative'}">${pnl >= 0 ? '+' : ''}${pnl}</span></div>
+        <div class="tooltip-row"><span>Deviation</span><span class="${deviation >= 0 ? 'pnl-positive' : 'pnl-negative'}">${deviation >= 0 ? '+' : ''}${deviation}%</span></div>
+        <div class="tooltip-row"><span>Status</span><span style="color: ${profitable ? 'var(--color-profit)' : 'var(--color-loss)'}">${profitable ? '🟢 Profit' : '🔴 Loss'}</span></div>
+    `;
+    tooltip.classList.add('visible');
+    moveTooltip(event);
+}
+
+function moveTooltip(event) {
+    const tooltip = document.getElementById('calendar-tooltip');
+    tooltip.style.left = (event.clientX + 12) + 'px';
+    tooltip.style.top = (event.clientY + 12) + 'px';
+}
+
+function hideTooltip() {
+    document.getElementById('calendar-tooltip').classList.remove('visible');
+}
+
+document.addEventListener('mousemove', function(e) {
+    const tooltip = document.getElementById('calendar-tooltip');
+    if (tooltip.classList.contains('visible')) {
+        moveTooltip(e);
+    }
+});
+
+async function changeMonth(delta) {
+    calendarMonth += delta;
+    if (calendarMonth > 12) { calendarMonth = 1; calendarYear++; }
+    if (calendarMonth < 1) { calendarMonth = 12; calendarYear--; }
+
+    try {
+        const resp = await fetch(`/dashboard/api/calendar?year=${calendarYear}&month=${calendarMonth}`);
+        const data = await resp.json();
+        document.getElementById('calendar-month').textContent = MONTH_NAMES[data.month - 1] + ' ' + data.year;
+        renderCalendar(data);
+    } catch(e) {
+        console.error('Failed to load calendar:', e);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    renderCalendar(calendarData);
+    initHeatmapTooltip();
+});
+
+function initHeatmapTooltip() {
+    const heatmapEl = document.querySelector('#heatmap-var2-container .plotly-graph-div');
+    if (!heatmapEl) return;
+
+    const tooltip = document.createElement('div');
+    tooltip.id = 'heatmap-tooltip';
+    tooltip.className = 'heatmap-tooltip';
+    document.body.appendChild(tooltip);
+
+    const heatmapDetail = {{ heatmap_data.cells | tojson | safe }};
+    const symbolMin = {{ heatmap_data.symbol_min | tojson | safe }};
+    const symbolMax = {{ heatmap_data.symbol_max | tojson | safe }};
+
+    heatmapEl.on('plotly_hover', function(data) {
+        if (!data.points || !data.points[0]) return;
+        const symbol = data.points[0].y;
+        const month = data.points[0].x;
+        const days = heatmapDetail[symbol]?.[month] || [];
+        const avgRoe = data.points[0].z;
+
+        if (days.length === 0) return;
+
+        const minRoe = symbolMin[symbol] || 0;
+        const maxRoe = symbolMax[symbol] || 1;
+
+        let rowHtml = '<div class="heatmap-tooltip-row">';
+        days.forEach(day => {
+            const color = getMiniColorJS(day.roe_pct, minRoe, maxRoe);
+            rowHtml += `<div class="mini-cell" style="background:${color}"></div>`;
+        });
+        rowHtml += '</div>';
+
+        tooltip.innerHTML = `
+            <div class="heatmap-tooltip-header">
+                <span>${symbol}</span>
+                <span>${month}</span>
+            </div>
+            ${rowHtml}
+            <div class="heatmap-tooltip-meta">${days.length} days | Avg: ${avgRoe >= 0 ? '+' : ''}${avgRoe}%</div>
+        `;
+        tooltip.classList.add('visible');
+    });
+
+    heatmapEl.on('plotly_unhover', function() {
+        tooltip.classList.remove('visible');
+    });
+
+    document.addEventListener('mousemove', function(e) {
+        if (tooltip.classList.contains('visible')) {
+            tooltip.style.left = (e.clientX + 15) + 'px';
+            tooltip.style.top = (e.clientY + 15) + 'px';
+        }
+    });
+}
+
+function getMiniColorJS(roe, minRoe, maxRoe) {
+    if (maxRoe === minRoe) return '#9ca3af';
+    const ratio = (roe - minRoe) / (maxRoe - minRoe);
+    if (ratio >= 0.85) return '#16a34a';
+    if (ratio >= 0.7) return '#22c55e';
+    if (ratio >= 0.55) return '#86efac';
+    if (ratio > 0.45) return '#9ca3af';
+    if (ratio > 0.3) return '#fca5a5';
+    if (ratio > 0.15) return '#ef4444';
+    return '#dc2626';
+}
+</script>
+{% endblock %}

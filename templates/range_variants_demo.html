@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Range Bar — Демонстрация вариантов</title>
+    <link rel="stylesheet" href="/static/css/range_variants_demo.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+</head>
+<body>
+    <div class="demo-page">
+        <h1>Range Bar — Демонстрация вариантов</h1>
+
+        <div class="demo-data">
+            <h3>Тестовые данные: ETC #10</h3>
+            <p>
+                Entry: <strong id="entry-price">8.0995</strong> |
+                Current: <strong id="current-price">8.44</strong> |
+                Low: <strong id="low-price">7.77</strong> |
+                High: <strong id="high-price">9.78</strong> |
+                Leverage: <strong id="leverage">10x</strong> |
+                Days: <strong id="days-count">72</strong>
+            </p>
+            <p id="ranges-data"></p>
+        </div>
+
+        <!-- === Variant 0: Segmented Bar (исходный формат) === -->
+        <div class="variant-section">
+            <h2>Variant 0: Segmented Bar — Ценовой диапазон</h2>
+            <div class="info-box">
+                <b>Инфо:</b> Bar разделен на 3 зоны по ценовым уровням: Low→Entry, Entry→Current, Current→High. Подсвечен диапазон Entry→Current.
+                <br><b>Плюсы:</b> Наглядно показывает положение Entry и Current относительно Low/High
+                <br><b>Минусы:</b> Не отображает распределение дней по ROE
+            </div>
+            <div class="variant-box">
+                <div class="variant1-bar" id="variant1">
+                    <div class="segment segment-gray-red" style="width: 16.4%;">
+                        <span class="segment-label">30d<br/>41.7%</span>
+                    </div>
+                    <div class="segment segment-green" style="width: 16.9%;">
+                        <span class="segment-label">42d<br/>58.3%</span>
+                    </div>
+                    <div class="segment segment-gray-green" style="width: 66.7%;">
+                        <span class="segment-label">0d<br/>0%</span>
+                    </div>
+                    <div class="marker-line entry" style="left: 16.4%;">
+                        <span class="marker-label-top">E</span>
+                        <div class="marker-vline"></div>
+                        <span class="marker-label-bottom">8.0995</span>
+                    </div>
+                    <div class="marker-line current" style="left: 33.3%;">
+                        <span class="marker-label-top">C</span>
+                        <div class="marker-vline"></div>
+                        <span class="marker-label-bottom">8.44</span>
+                    </div>
+                </div>
+                <div class="price-labels-inline">
+                    <span class="low">7.77 (Low)</span>
+                    <span class="high">9.78 (High)</span>
+                </div>
+                <div class="meta-info">
+                    <span>Range: <span class="positive">+20.75%</span> / <span class="negative">-4.07%</span></span>
+                    <span>Volatility: <strong>2.01</strong> (25%)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- === Variant 0_1: Segmented Bar (высота пропорциональна дням, мин 10%) === -->
+        <div class="variant-section">
+            <h2>Variant 0_1: Segmented Bar — Пропорция дней</h2>
+            <div class="info-box">
+                <b>Инфо:</b> Bar разделен на 3 колонки. Мин. высота 10%, остаток 90% делится пропорционально дням. Цвета: Low→Entry (#45679D), Entry→Current (#C80E0E), High (#234A3F), Low (#480700).
+                <br><b>Плюсы:</b> Наглядно видно какой диапазон занимает больше времени
+                <br><b>Минусы:</b> Не видно абсолютную цену
+            </div>
+            <div class="variant-box">
+                <div class="variant0-1-bar" id="variant0-1">
+                    <div class="col-wrapper">
+                        <div class="col-segment segment-gray-red" id="v0-1-low-segment" style="height: 47.5%;">
+                            <span class="col-segment-label" id="v0-1-low-label">47.5%<br/>30d</span>
+                        </div>
+                    </div>
+                    <div class="col-wrapper">
+                        <div class="col-segment segment-green" id="v0-1-current-segment" style="height: 62.5%;">
+                            <span class="col-segment-label" id="v0-1-current-label">62.5%<br/>42d</span>
+                        </div>
+                    </div>
+                    <div class="col-wrapper">
+                        <div class="col-segment segment-gray-green" id="v0-1-high-segment" style="height: 0%;">
+                            <span class="col-segment-label" id="v0-1-high-label">0%</span>
+                        </div>
+                    </div>
+                    <div class="marker-line entry" id="v0-1-entry-marker" style="left: 16.6%; height: 47.5%;">
+                        <span class="marker-label-top">E</span>
+                        <div class="marker-vline"></div>
+                        <span class="marker-label-bottom" id="v0-1-entry-price">8.0995</span>
+                    </div>
+                    <div class="marker-line current" id="v0-1-current-marker" style="left: 50%; height: 62.5%;">
+                        <span class="marker-label-top">C</span>
+                        <div class="marker-vline"></div>
+                        <span class="marker-label-bottom" id="v0-1-current-price">8.44</span>
+                    </div>
+                </div>
+                <div class="price-labels-inline">
+                    <span class="low" id="v0-1-low-price">7.77 (Low)</span>
+                    <span class="high" id="v0-1-high-price">9.78 (High)</span>
+                </div>
+                <div class="meta-info" id="v0-1-meta">
+                    <span>Range: <span class="positive">+20.75%</span> / <span class="negative">-4.07%</span></span>
+                    <span>Volatility: <strong>2.01</strong> (25%)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- === Variant 2: Vertical Timeline === -->
+        <div class="variant-section">
+            <h2>Variant 2: Vertical Timeline (как Calendar Heatmap)</h2>
+            <div class="info-box">
+                <b>Инфо:</b> Вертикальный список, каждая сделка = Symbol + ROE% + Bar внутри. Похож на Calendar Heatmap.
+                <br><b>Плюсы:</b> Компактный, показывает несколько уровней
+                <br><b>Минусы:</b> Занимает вертикальное пространство
+            </div>
+            <div class="variant-box">
+                <div class="variant2-timeline" id="variant2">
+                    <div class="variant2-row">
+                        <div class="bar" style="width: 95%; background: #166534;">
+                            <span class="label">HIGH +207%</span>
+                        </div>
+                    </div>
+                    <div class="variant2-row">
+                        <div class="bar" style="width: 70%; background: #22c55e;">
+                            <span class="label">CURRENT +42%</span>
+                        </div>
+                    </div>
+                    <div class="variant2-row">
+                        <div class="bar" style="width: 40%; background: #6b7280;">
+                            <span class="label">ENTRY 8.0995</span>
+                        </div>
+                    </div>
+                    <div class="variant2-row">
+                        <div class="bar" style="width: 15%; background: #ef4444;">
+                            <span class="label">LOW -4%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="price-labels-inline">
+                    <span class="low">7.77 (Low)</span>
+                    <span class="high">9.78 (High)</span>
+                </div>
+                <div class="meta-info">
+                    <span>Entry: <strong>8.0995</strong></span>
+                    <span>Current: <strong>8.44</strong></span>
+                    <span>PnL: <span class="positive">+42.04%</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- === Variant 3: Mini-Candles Strip === -->
+        <div class="variant-section">
+            <h2>Variant 3: Mini-Candles Strip (1 день = 1 сегмент)</h2>
+            <div class="info-box">
+                <b>Инфо:</b> Bar из 72 мини-сегментов (1 день = 1 сегмент), без отступов. Цвет каждого сегмента по ROE этого дня.
+                <br><b>Плюсы:</b> Показывает все дни, историю движения
+                <br><b>Минусы:</b> Может быть "шумным" при 70+ днях
+            </div>
+            <div class="variant-box">
+                <div class="variant3-bar" id="variant3">
+                    <div class="mini-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #fca5a5;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #fca5a5;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #fca5a5;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #fca5a5;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #fca5a5;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #fca5a5;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #fca5a5;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #fca5a5;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #fca5a5;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #fca5a5;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #fca5a5;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #fca5a5;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="mini-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+                    <div class="mini-bar" style="background: #bbf7d0;"></div>
+                    <div class="mini-bar" style="background: #6b7280;"></div>
+                    <div class="mini-bar" style="background: #fca5a5;"></div>
+                    <div class="mini-bar" style="background: #ef4444;"></div>
+                    <div class="mini-bar" style="background: #22c55e;"></div>
+                    <div class="mini-bar" style="background: #86efac;"></div>
+                    <div class="mini-bar" style="background: #bbf7d0;"></div>
+                    <div class="mini-bar" style="background: #6b7280;"></div>
+                    <div class="mini-bar" style="background: #dc2626;"></div>
+                    <div class="mini-bar" style="background: #22c55e;"></div>
+                    <div class="mini-bar" style="background: #6b7280;"></div>
+                    <div class="mini-bar" style="background: #fca5a5;"></div>
+                    <div class="mini-bar" style="background: #bbf7d0;"></div>
+                    <div class="mini-bar" style="background: #22c55e;"></div>
+                    <div class="mini-bar" style="background: #ef4444;"></div>
+                    <div class="mini-bar" style="background: #6b7280;"></div>
+                    <div class="mini-bar" style="background: #86efac;"></div>
+                    <div class="mini-bar" style="background: #bbf7d0;"></div>
+                    <div class="marker-line entry" style="left: 30%;">
+                        <span>ENTRY</span>
+                    </div>
+                    <div class="marker-line current" style="left: 70%;">
+                        <span>CURRENT</span>
+                    </div>
+                </div>
+                <div class="price-labels-inline">
+                    <span class="low">7.77 (Low)</span>
+                    <span class="high">9.78 (High)</span>
+                </div>
+                <div class="meta-info">
+                    <span>Days: <strong>72</strong></span>
+                    <span>Avg ROE: <strong>+15.2%</strong></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- === Variant 4: Gradient Bar === -->
+        <div class="variant-section">
+            <h2>Variant 4: Gradient Bar (green→gray→red)</h2>
+            <div class="info-box">
+                <b>Инфо:</b> Bar с единым градиентом (red→gray→green). Позиция ENTRY/CURRENT показана линиями сверху/снизу.
+                <br><b>Плюсы:</b> Простой, наглядный
+                <br><b>Минусы:</b> Размывает границы диапазонов
+            </div>
+            <div class="variant-box">
+                <div class="variant4-bar" id="variant4">
+                    <div class="gradient-fill" style="width: 100%;"></div>
+                    <div class="marker-line entry" style="left: 30%;">
+                        <span>ENTRY</span>
+                        <span style="font-size:9px">8.0995</span>
+                    </div>
+                    <div class="marker-line current" style="left: 70%;">
+                        <span>CURRENT</span>
+                        <span style="font-size:9px">8.44</span>
+                    </div>
+                </div>
+                <div class="price-labels-inline">
+                    <span class="low">7.77 (Low)</span>
+                    <span class="high">9.78 (High)</span>
+                </div>
+                <div class="meta-info">
+                    <span>Position: <strong>42%</strong> от Low к High</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- === Variant 5: Stacked Horizontal (seaborn style) === -->
+        <div class="variant-section">
+            <h2>Variant 5: Stacked Horizontal (seaborn style)</h2>
+            <div class="info-box">
+                <b>Инфо:</b> Горизонтальные stacked bars. Сегменты = агрегированные дни по ROE-диапазонам. Как matplotlib/seaborn stacked bar.
+                <br><b>Плюсы:</b> Показывает пропорции диапазонов
+                <br><b>Минусы:</b> Не видно последовательности дней
+            </div>
+            <div class="variant-box">
+                <div class="variant5-container" id="variant5">
+                    <div class="variant5-row">
+                        <div class="variant5-label">ETC</div>
+                        <div class="variant5-bar">
+                            <div class="segment" style="width: 11%; background: #166534;"></div>
+                            <div class="segment" style="width: 21%; background: #22c55e;"></div>
+                            <div class="segment" style="width: 31%; background: #86efac;"></div>
+                            <div class="segment" style="width: 21%; background: #bbf7d0;"></div>
+                            <div class="segment" style="width: 16%; background: #6b7280;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="meta-info">
+                    <span>Days per range:</span>
+                    <span class="color-200plus" style="padding: 2px 6px; color: white;">200%+: 8d</span>
+                    <span class="color-100-200" style="padding: 2px 6px; color: white;">100-200: 15d</span>
+                    <span class="color-50-100" style="padding: 2px 6px;">50-100: 22d</span>
+                    <span class="color-0-10" style="padding: 2px 6px;">0-10: 27d</span>
+                </div>
+            </div>
+        </div>
+
+<!-- === Variant 6: Timeline Strip === -->
+        <div class="variant-section">
+            <h2>Variant 6: Timeline Strip</h2>
+            <div class="info-box">
+                <b>Инфо:</b> Горизонтальная полоса с маркерами ENTRY/CURRENT как вертикальными линиями. Bar между маркерами показывает диапазон Low→High.
+                <br><b>Плюсы:</b> Чётко показывает позицию входа и текущую
+                <br><b>Минусы:</b> Не показывает историю дней
+            </div>
+            <div class="variant-box">
+                <div class="variant6-bar" id="variant6">
+                    <div class="timeline-strip">
+                        <div class="strip-line"></div>
+                        <div class="strip-marker entry" style="left: 30%;">
+                            <div class="marker-dot"></div>
+                            <span class="marker-text">ENTRY 8.0995</span>
+                        </div>
+                        <div class="strip-marker current" style="left: 70%;">
+                            <div class="marker-dot"></div>
+                            <span class="marker-text">CURRENT 8.44</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="price-labels-inline">
+                    <span class="low">7.77 (Low)</span>
+                    <span class="high">9.78 (High)</span>
+</div>
+            </div>
+        </div>
+
+        <!-- === Variant 8: Markers Only === -->
+        <div class="variant-section">
+            <h2>Variant 8: Markers Only</h2>
+            <div class="info-box">
+                <b>Инфо:</b> Только вертикальные линии ENTRY и CURRENT на ценовой шкале. Bar фона показывает диапазон Low→High.
+                <br><b>Плюсы:</b> Максимально простой
+                <br><b>Минусы:</b> Минимум информации
+            </div>
+            <div class="variant-box">
+                <div class="variant8-bar" id="variant8">
+                    <div class="markers-only">
+                        <div class="markers-bar">
+                            <div class="marker entry" style="left: 30%;">
+                                <div class="marker-vline"></div>
+                                <span class="marker-label">ENTRY<br>8.0995</span>
+                            </div>
+                            <div class="marker current" style="left: 70%;">
+                                <div class="marker-vline"></div>
+                                <span class="marker-label">CURRENT<br>8.44</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="price-labels-inline">
+                    <span class="low">7.77</span>
+                    <span class="high">9.78</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- === Variant 7: Filled Range === -->
+        <div class="variant-section">
+            <h2>Variant 7: Filled Range</h2>
+            <div class="info-box">
+                <b>Инфо:</b> Bar залит от Low до High цветом, маркеры ENTRY/CURRENT делят bar на зоны. Цвет меняется от красного к зелёному.
+                <br><b>Плюсы:</b> Наглядно показывает положение текущей цены
+                <br><b>Минусы:</b> Не видно распределения дней
+            </div>
+            <div class="variant-box">
+                <div class="variant7-bar" id="variant7">
+                    <div class="filled-bar">
+                        <div class="filled-segment low" style="width: 30%;"></div>
+                        <div class="filled-segment entry-to-current" style="width: 40%;"></div>
+                        <div class="filled-segment high" style="width: 30%;"></div>
+                    </div>
+                    <div class="filled-markers">
+                        <span class="marker-label entry" style="left: 30%;">ENTRY 8.0995</span>
+                        <span class="marker-label current" style="left: 70%;">CURRENT 8.44</span>
+                    </div>
+                </div>
+                <div class="price-labels-inline">
+                    <span class="low">7.77 (Low)</span>
+                    <span class="high">9.78 (High)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- === Variant 9: Candles Range === -->
+        <div class="variant-section">
+            <h2>Variant 9: Candles Range</h2>
+            <div class="info-box">
+                <b>Инфо:</b> Мини-свечи (high/low/body) как полоски внутри bar. Каждая "свеча" = один день.
+                <br><b>Плюсы:</b> Показывает high/low каждого дня
+                <br><b>Минусы:</b> Сложнее для восприятия
+            </div>
+            <div class="variant-box">
+                <div class="variant9-bar" id="variant9">
+                    <div class="candles-range">
+                        <div class="candle-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #fca5a5;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #fca5a5;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #fca5a5;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #fca5a5;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #fca5a5;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #fca5a5;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #fca5a5;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #fca5a5;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #fca5a5;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #fca5a5;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #fca5a5;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #fca5a5;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #6b7280;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+<div class="candle-bar" style="width: 1.39%; background: #bbf7d0;"></div>
+                        <div class="candle-bar" style="background: #bbf7d0;"></div>
+                        <div class="candle-bar" style="background: #6b7280;"></div>
+                        <div class="candle-bar" style="background: #fca5a5;"></div>
+                        <div class="candle-bar" style="background: #ef4444;"></div>
+                        <div class="candle-bar" style="background: #22c55e;"></div>
+                        <div class="candle-bar" style="background: #86efac;"></div>
+                        <div class="candle-bar" style="background: #bbf7d0;"></div>
+                        <div class="candle-bar" style="background: #6b7280;"></div>
+                        <div class="candle-bar" style="background: #dc2626;"></div>
+                        <div class="candle-bar" style="background: #22c55e;"></div>
+                    </div>
+                </div>
+                <div class="price-labels-inline">
+                    <span class="low">7.77 (Low)</span>
+                    <span class="high">9.78 (High)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- === Variant 10: Numeric Only === -->
+        <div class="variant-section">
+            <h2>Variant 10: Numeric Only</h2>
+            <div class="info-box">
+                <b>Инфо:</b> Без визуального bar. Только цифры: Entry, Current, Low, High, Range%, Volatility.
+                <br><b>Плюсы:</b> Максимально компактный
+                <br><b>Минусы:</b> Нет визуальной информации
+            </div>
+            <div class="variant-box">
+                <div class="variant10-numeric" id="variant10">
+                    <div class="numeric-only">
+                        <div class="numeric-row">
+                            <div class="numeric-item">
+                                <span class="numeric-label">ENTRY</span>
+                                <span class="numeric-value">8.0995</span>
+                            </div>
+                            <div class="numeric-item">
+                                <span class="numeric-label">CURRENT</span>
+                                <span class="numeric-value positive">8.44 <small>(+4.2%)</small></span>
+                            </div>
+                        </div>
+                        <div class="numeric-row">
+                            <div class="numeric-item">
+                                <span class="numeric-label">LOW</span>
+                                <span class="numeric-value negative">7.77 <small>(-4.1%)</small></span>
+                            </div>
+                            <div class="numeric-item">
+                                <span class="numeric-label">HIGH</span>
+                                <span class="numeric-value positive">9.78 <small>(+20.8%)</small></span>
+                            </div>
+                        </div>
+                        <div class="numeric-row">
+                            <div class="numeric-item">
+                                <span class="numeric-label">RANGE</span>
+                                <span class="numeric-value">2.01 <small>(24.8%)</small></span>
+                            </div>
+                            <div class="numeric-item">
+                                <span class="numeric-label">LEVERAGE</span>
+                                <span class="numeric-value">10x</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === Current (исходный) === -->
+        <div class="variant-section">
+            <h2>Current (исходный вариант)</h2>
+            <div class="variant-box">
+                <div class="current-bar">
+                    <div class="bar-bg"></div>
+                    <div class="marker entry">
+                        <span class="marker-label">ENTRY</span>
+                    </div>
+                    <div class="marker current">
+                        <span class="marker-label">CURRENT</span>
+                    </div>
+                </div>
+                <div class="price-labels-inline">
+                    <span class="low">7.77 (Low)</span>
+                    <span class="high">9.78 (High)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const tradeData = {{ trade_data | tojson | safe }};
+        const daysData = {{ days_data | tojson | safe }};
+
+        function getOrDefault(path, defaultValue) {
+            try {
+                const keys = path.split('.');
+                let val = tradeData;
+                for (const k of keys) {
+                    if (val === undefined || val === null) return defaultValue;
+                    val = val[k];
+                }
+                return val !== undefined ? val : defaultValue;
+            } catch {
+                return defaultValue;
+            }
+        }
+
+        const data = {
+            entry: getOrDefault('data.emoji_entry.entry_price', 8.0995),
+            current: getOrDefault('data.emoji_upd.current_price', 8.44),
+            low: getOrDefault('data.ohlc.min.price', 7.77),
+            high: getOrDefault('data.ohlc.max.price', 9.78),
+            leverage: getOrDefault('data.leverage', 10),
+            volume: getOrDefault('data.emoji_entry.volume', 1.68),
+            days: daysData.length || 72
+        };
+
+        document.getElementById('entry-price').textContent = data.entry.toFixed(4);
+        document.getElementById('current-price').textContent = data.current.toFixed(4);
+        document.getElementById('low-price').textContent = data.low.toFixed(4);
+        document.getElementById('high-price').textContent = data.high.toFixed(4);
+        document.getElementById('leverage').textContent = data.leverage + 'x';
+        document.getElementById('days-count').textContent = data.days;
+
+        const ranges = getOrDefault('data.ranges', null);
+        if (ranges) {
+            const rangesStr = JSON.stringify(ranges, null, 2);
+            document.getElementById('ranges-data').innerHTML = '<pre style="font-size:10px; text-align:left;">ranges: ' + rangesStr + '</pre>';
+        }
+
+        function getRoeColor(roe) {
+            if (roe >= 200) return '#166534';
+            if (roe >= 100) return '#22c55e';
+            if (roe >= 50)  return '#86efac';
+            if (roe >= 10)  return '#bbf7d0';
+            if (roe >= 0)   return '#d1d5db';
+            if (roe >= -10) return '#fca5a5';
+            if (roe >= -50) return '#ef4444';
+            if (roe >= -100) return '#dc2626';
+            return '#991b1b';
+        }
+
+        const demoDays = daysData.length > 0 ? daysData.map((d, i) => ({
+            day: i + 1,
+            price: d.ohlc ? d.ohlc.close : data.entry,
+            roe: d.roe_pct || 0
+        })) : [
+            { day: 1, price: 8.12, roe: 14.9 },
+            { day: 2, price: 8.08, roe: -2.4 },
+            { day: 3, price: 8.15, roe: 6.2 },
+            { day: 4, price: 8.22, roe: 14.9 },
+            { day: 5, price: 8.18, roe: 9.9 },
+            { day: 6, price: 8.25, roe: 18.6 },
+            { day: 7, price: 8.31, roe: 26.0 },
+            { day: 8, price: 8.28, roe: 22.3 },
+            { day: 9, price: 8.19, roe: 11.1 },
+            { day: 10, price: 8.12, roe: 14.9 },
+            { day: 11, price: 8.05, roe: -6.1 },
+            { day: 12, price: 8.15, roe: 6.2 },
+            { day: 13, price: 8.24, roe: 17.3 },
+            { day: 14, price: 8.19, roe: 11.1 },
+            { day: 15, price: 8.11, roe: 13.0 },
+            { day: 16, price: 8.05, roe: -6.1 },
+            { day: 17, price: 8.18, roe: 9.9 },
+            { day: 18, price: 8.26, roe: 19.8 },
+            { day: 19, price: 8.21, roe: 13.6 },
+            { day: 20, price: 8.15, roe: 6.2 },
+            { day: 21, price: 8.09, roe: -1.2 },
+            { day: 22, price: 8.02, roe: -9.8 },
+            { day: 23, price: 8.10, roe: 0.6 },
+            { day: 24, price: 8.18, roe: 9.9 },
+            { day: 25, price: 8.25, roe: 18.6 },
+            { day: 26, price: 8.31, roe: 26.0 },
+            { day: 27, price: 8.28, roe: 22.3 },
+            { day: 28, price: 8.22, roe: 14.9 },
+            { day: 29, price: 8.16, roe: 7.5 },
+            { day: 30, price: 8.10, roe: 0.6 },
+            { day: 31, price: 8.05, roe: -6.1 },
+            { day: 32, price: 8.12, roe: 2.5 },
+            { day: 33, price: 8.19, roe: 11.1 },
+            { day: 34, price: 8.25, roe: 18.6 },
+            { day: 35, price: 8.20, roe: 12.4 },
+            { day: 36, price: 8.14, roe: 5.0 },
+            { day: 37, price: 8.08, roe: -2.4 },
+            { day: 38, price: 8.15, roe: 6.2 },
+            { day: 39, price: 8.22, roe: 14.9 },
+            { day: 40, price: 8.17, roe: 8.7 },
+            { day: 41, price: 8.11, roe: 1.3 },
+            { day: 42, price: 8.06, roe: -4.9 },
+            { day: 43, price: 8.13, roe: 3.7 },
+            { day: 44, price: 8.20, roe: 12.4 },
+            { day: 45, price: 8.27, roe: 21.0 },
+            { day: 46, price: 8.33, roe: 28.5 },
+            { day: 47, price: 8.29, roe: 23.5 },
+            { day: 48, price: 8.23, roe: 16.0 },
+            { day: 49, price: 8.18, roe: 9.9 },
+            { day: 50, price: 8.12, roe: 2.5 },
+            { day: 51, price: 8.07, roe: -3.7 },
+            { day: 52, price: 8.14, roe: 5.0 },
+            { day: 53, price: 8.21, roe: 13.6 },
+            { day: 54, price: 8.16, roe: 7.5 },
+            { day: 55, price: 8.10, roe: 0.6 },
+            { day: 56, price: 8.04, roe: -7.4 },
+            { day: 57, price: 8.11, roe: 1.3 },
+            { day: 58, price: 8.18, roe: 9.9 },
+            { day: 59, price: 8.24, roe: 17.3 },
+            { day: 60, price: 8.19, roe: 11.1 },
+            { day: 61, price: 8.13, roe: 3.7 },
+            { day: 62, price: 8.08, roe: -2.4 },
+            { day: 63, price: 8.15, roe: 6.2 },
+            { day: 64, price: 8.22, roe: 14.9 },
+            { day: 65, price: 8.17, roe: 8.7 },
+            { day: 66, price: 8.11, roe: 1.3 },
+            { day: 67, price: 8.06, roe: -4.9 },
+            { day: 68, price: 8.12, roe: 2.5 },
+            { day: 69, price: 8.19, roe: 11.1 },
+            { day: 70, price: 8.25, roe: 18.6 },
+            { day: 71, price: 8.20, roe: 12.4 },
+            { day: 72, price: 8.44, roe: 42.0 }
+        ];
+
+        // === Variant 1: Segmented Bar ===
+        function renderVariant1() {
+            const container = document.getElementById('variant1');
+            
+            // Позиции маркеров (в % от ширины)
+            const entryPos = 30;
+            const currentPos = 70;
+            
+            // Генерируем сегменты
+            let html = '';
+            for (let i = 0; i < 30; i++) {
+                const roe = (Math.random() - 0.3) * 100;
+                const color = getRoeColor(roe);
+                html += `<div class="segment" style="width: 3.33%; background: ${color}"></div>`;
+            }
+            
+            // Маркеры
+            html += `<div class="marker-line entry" style="left: ${entryPos}%">
+                <span>ENTRY</span>
+                <span style="font-size:9px">8.0995</span>
+            </div>`;
+            
+            html += `<div class="marker-line current" style="left: ${currentPos}%">
+                <span>CURRENT</span>
+                <span style="font-size:9px">8.44</span>
+            </div>`;
+            
+            container.innerHTML = html;
+        }
+
+        // === Variant 2: Vertical Timeline ===
+        function renderVariant2() {
+            const container = document.getElementById('variant2');
+            
+            // Entry row
+            const entryRoe = 0;
+            const entryWidth = 40;
+            const entryColor = getRoeColor(entryRoe);
+            
+            let html = `
+            <div class="variant2-row">
+                <div class="bar" style="width: ${entryWidth}%; background: ${entryColor}">
+                    <span class="label">ENTRY 8.0995</span>
+                </div>
+            </div>`;
+            
+            // Current row
+            const currentRoe = 42;
+            const currentWidth = 70;
+            const currentColor = getRoeColor(currentRoe);
+            
+            html += `
+            <div class="variant2-row">
+                <div class="bar" style="width: ${currentWidth}%; background: ${currentColor}">
+                    <span class="label">CURRENT +42%</span>
+                </div>
+            </div>`;
+            
+            // High row
+            const highRoe = 207;
+            const highWidth = 95;
+            const highColor = getRoeColor(highRoe);
+            
+            html += `
+            <div class="variant2-row">
+                <div class="bar" style="width: ${highWidth}%; background: ${highColor}">
+                    <span class="label">HIGH +207%</span>
+                </div>
+            </div>`;
+            
+            // Low row
+            const lowRoe = -40;
+            const lowWidth = 15;
+            const lowColor = getRoeColor(lowRoe);
+            
+            html += `
+            <div class="variant2-row">
+                <div class="bar" style="width: ${lowWidth}%; background: ${lowColor}">
+                    <span class="label">LOW -40%</span>
+                </div>
+            </div>`;
+            
+            container.innerHTML = html;
+        }
+
+        // === Variant 3: Mini-Candles Strip ===
+        function renderVariant3() {
+            const container = document.getElementById('variant3');
+            
+            // Позиции маркеров
+            const entryPos = 30;
+            const currentPos = 70;
+            
+            // Генерируем мини-бары (72 дня)
+            let html = '';
+            demoDays.forEach(day => {
+                const color = getRoeColor(day.roe);
+                html += `<div class="mini-bar" style="background: ${color}"></div>`;
+            });
+            
+            // Маркеры
+            html += `<div class="marker-line entry" style="left: ${entryPos}%">ENTRY 8.0995</div>`;
+            html += `<div class="marker-line current" style="left: ${currentPos}%">CURRENT 8.44</div>`;
+            
+            container.innerHTML = html;
+        }
+
+        // === Variant 4: Gradient Bar ===
+        function renderVariant4() {
+            const container = document.getElementById('variant4');
+            
+            // Позиции маркеров
+            const entryPos = 30;
+            const currentPos = 70;
+            
+            // Маркеры
+            let html = `
+            <div class="marker-line entry" style="left: ${entryPos}%">
+                ENTRY<br><span style="font-size:9px">8.0995</span>
+            </div>`;
+            
+            html += `
+            <div class="marker-line current" style="left: ${currentPos}%">
+                CURRENT<br><span style="font-size:9px">8.44</span>
+            </div>`;
+            
+            container.innerHTML += html;
+        }
+
+        // === Variant 5: Stacked Horizontal (seaborn style) ===
+        function renderVariant5() {
+            const container = document.getElementById('variant5');
+            
+            // Группируем дни по диапазонам
+            const ranges = [
+                { name: '>200%', min: 200, max: 9999, color: '#166534' },
+                { name: '100-200', min: 100, max: 200, color: '#22c55e' },
+                { name: '50-100', min: 50, max: 100, color: '#86efac' },
+                { name: '10-50', min: 10, max: 50, color: '#bbf7d0' },
+                { name: '0-10', min: 0, max: 10, color: '#d1d5db' },
+                { name: '-10-0', min: -10, max: 0, color: '#fca5a5' },
+                { name: '-50-(-10)', min: -50, max: -10, color: '#ef4444' },
+                { name: '-100-(-50)', min: -100, max: -50, color: '#dc2626' },
+                { name: '<-100%', min: -9999, max: -100, color: '#991b1b' }
+            ];
+            
+            // Подсчёт дней в каждом диапазоне
+            const counts = ranges.map(() => 0);
+            demoDays.forEach(day => {
+                for (let i = 0; i < ranges.length; i++) {
+                    if (day.roe >= ranges[i].min && day.roe < ranges[i].max) {
+                        counts[i]++;
+                        break;
+                    }
+                }
+            });
+            
+            const total = demoDays.length;
+            
+            // Генерируем bar
+            let html = `
+            <div class="variant5-row">
+                <div class="variant5-label">ETC</div>
+                <div class="variant5-bar">`;
+            
+            ranges.forEach((range, i) => {
+                if (counts[i] > 0) {
+                    const pct = (counts[i] / total) * 100;
+                    html += `<div class="segment" style="width: ${pct}%; background: ${range.color}" title="${range.name}: ${counts[i]}d"></div>`;
+                }
+            });
+            
+            html += `</div></div>`;
+
+            container.innerHTML = html;
+        }
+
+        // === Variant 6: Timeline Strip ===
+        function renderVariant6() {
+            const container = document.getElementById('variant6');
+            const entryPos = 30;
+            const currentPos = 70;
+            const range = data.high - data.low;
+            const entryPct = ((data.entry - data.low) / range) * 100;
+            const currentPct = ((data.current - data.low) / range) * 100;
+
+            let html = `
+            <div class="timeline-strip">
+                <div class="strip-line"></div>
+                <div class="strip-marker entry" style="left: ${entryPct}%">
+                    <div class="marker-dot"></div>
+                    <div class="marker-text">ENTRY<br><span>8.0995</span></div>
+                </div>
+                <div class="strip-marker current" style="left: ${currentPct}%">
+                    <div class="marker-dot"></div>
+                    <div class="marker-text">CURRENT<br><span>8.44</span></div>
+                </div>
+            </div>`;
+            container.innerHTML = html;
+        }
+
+        // === Variant 7: Filled Range ===
+        function renderVariant7() {
+            const container = document.getElementById('variant7');
+            const range = data.high - data.low;
+            const entryPct = ((data.entry - data.low) / range) * 100;
+            const currentPct = ((data.current - data.low) / range) * 100;
+
+            let html = `
+            <div class="filled-range">
+                <div class="filled-bar">
+                    <div class="filled-segment low" style="width: ${entryPct}%"></div>
+                    <div class="filled-segment entry-to-current" style="width: ${currentPct - entryPct}%"></div>
+                    <div class="filled-segment high" style="width: ${100 - currentPct}%"></div>
+                </div>
+                <div class="filled-markers">
+                    <span class="marker-label entry" style="left: ${entryPct}%">ENTRY 8.0995</span>
+                    <span class="marker-label current" style="left: ${currentPct}%">CURRENT 8.44</span>
+                </div>
+            </div>`;
+            container.innerHTML = html;
+        }
+
+        // === Variant 8: Markers Only ===
+        function renderVariant8() {
+            const container = document.getElementById('variant8');
+            const range = data.high - data.low;
+            const entryPct = ((data.entry - data.low) / range) * 100;
+            const currentPct = ((data.current - data.low) / range) * 100;
+
+            let html = `
+            <div class="markers-only">
+                <div class="markers-bar">
+                    <div class="markers-line"></div>
+                    <div class="marker entry" style="left: ${entryPct}%">
+                        <div class="marker-vline"></div>
+                        <span class="marker-label">ENTRY<br>8.0995</span>
+                    </div>
+                    <div class="marker current" style="left: ${currentPct}%">
+                        <div class="marker-vline"></div>
+                        <span class="marker-label">CURRENT<br>8.44</span>
+                    </div>
+                </div>
+            </div>`;
+            container.innerHTML = html;
+        }
+
+        // === Variant 9: Candles Range ===
+        function renderVariant9() {
+            const container = document.getElementById('variant9');
+            let html = '<div class="candles-range">';
+
+            demoDays.forEach(day => {
+                const color = getRoeColor(day.roe);
+                const bodyPct = Math.abs((day.price - data.entry) / data.entry) * 100;
+                const highPct = (day.price > data.entry) ? bodyPct : 2;
+                html += `<div class="candle-bar" style="background: ${color}" title="Day ${day.day}: ${day.roe >= 0 ? '+' : ''}${day.roe.toFixed(1)}%"></div>`;
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // === Variant 10: Numeric Only ===
+        function renderVariant10() {
+            const container = document.getElementById('variant10');
+            const rangePct = ((data.current - data.entry) / data.entry) * 100;
+            const lowPct = ((data.low - data.entry) / data.entry) * 100;
+            const highPct = ((data.high - data.entry) / data.entry) * 100;
+            const volatility = data.high - data.low;
+            const volatilityPct = (volatility / data.entry) * 100;
+
+            let html = `
+            <div class="numeric-only">
+                <div class="numeric-row">
+                    <div class="numeric-item">
+                        <span class="numeric-label">ENTRY</span>
+                        <span class="numeric-value">8.0995</span>
+                    </div>
+                    <div class="numeric-item">
+                        <span class="numeric-label">CURRENT</span>
+                        <span class="numeric-value positive">8.44 <small>(+${rangePct.toFixed(1)}%)</small></span>
+                    </div>
+                </div>
+                <div class="numeric-row">
+                    <div class="numeric-item">
+                        <span class="numeric-label">LOW</span>
+                        <span class="numeric-value negative">7.77 <small>(${lowPct.toFixed(1)}%)</small></span>
+                    </div>
+                    <div class="numeric-item">
+                        <span class="numeric-label">HIGH</span>
+                        <span class="numeric-value positive">9.78 <small>(+${highPct.toFixed(1)}%)</small></span>
+                    </div>
+                </div>
+                <div class="numeric-row">
+                    <div class="numeric-item">
+                        <span class="numeric-label">RANGE</span>
+                        <span class="numeric-value">${volatility.toFixed(2)} <small>(${volatilityPct.toFixed(1)}%)</small></span>
+                    </div>
+                    <div class="numeric-item">
+                        <span class="numeric-label">LEVERAGE</span>
+                        <span class="numeric-value">${data.leverage}x</span>
+                    </div>
+                </div>
+            </div>`;
+            container.innerHTML = html;
+        }
+
+        // === Инициализация ===
+        function updateVariant0_1() {
+            if (!ranges || !daysData || daysData.length === 0) return;
+
+            const entryCurrent = ranges.entry_current || {};
+            const entryLow = ranges.entry_low || {};
+            const entryHigh = ranges.entry_high || {};
+            const currentLow = ranges.current_low || {};
+            const currentHigh = ranges.current_high || {};
+            const lowHigh = ranges.low_high || {};
+
+            const entryDays = entryCurrent.days || 0;
+            const lowDays = entryLow.days || 0;
+            const highDays = entryHigh.days || 0;
+            const totalDays = data.days || 1;
+
+            const lowPct = totalDays > 0 ? Math.max(10, (lowDays / totalDays) * 90 + 10) : 10;
+            const currentPct = totalDays > 0 ? Math.max(10, (entryDays / totalDays) * 90 + 10) : 10;
+            const highPct = totalDays > 0 ? Math.max(10, (highDays / totalDays) * 90 + 10) : 10;
+
+            const v0_1_low_seg = document.getElementById('v0-1-low-segment');
+            const v0_1_low_label = document.getElementById('v0-1-low-label');
+            const v0_1_current_seg = document.getElementById('v0-1-current-segment');
+            const v0_1_current_label = document.getElementById('v0-1-current-label');
+            const v0_1_high_seg = document.getElementById('v0-1-high-segment');
+            const v0_1_high_label = document.getElementById('v0-1-high-label');
+            const v0_1_entry_price = document.getElementById('v0-1-entry-price');
+            const v0_1_current_price = document.getElementById('v0-1-current-price');
+            const v0_1_low_price = document.getElementById('v0-1-low-price');
+            const v0_1_high_price = document.getElementById('v0-1-high-price');
+            const v0_1_meta = document.getElementById('v0-1-meta');
+            const v0_1_entry_marker = document.getElementById('v0-1-entry-marker');
+            const v0_1_current_marker = document.getElementById('v0-1-current-marker');
+
+            if (v0_1_low_seg) v0_1_low_seg.style.height = lowPct + '%';
+            if (v0_1_low_label) v0_1_low_label.innerHTML = lowPct.toFixed(1) + '%<br/>' + lowDays + 'd';
+            if (v0_1_current_seg) v0_1_current_seg.style.height = currentPct + '%';
+            if (v0_1_current_label) v0_1_current_label.innerHTML = currentPct.toFixed(1) + '%<br/>' + entryDays + 'd';
+            if (v0_1_high_seg) v0_1_high_seg.style.height = highPct + '%';
+            if (v0_1_high_label) v0_1_high_label.innerHTML = highPct.toFixed(1) + '%';
+            if (v0_1_entry_price) v0_1_entry_price.textContent = data.entry.toFixed(4);
+            if (v0_1_current_price) v0_1_current_price.textContent = data.current.toFixed(4);
+            if (v0_1_low_price) v0_1_low_price.textContent = data.low.toFixed(4) + ' (Low)';
+            if (v0_1_high_price) v0_1_high_price.textContent = data.high.toFixed(4) + ' (High)';
+
+            const entryPct = entryCurrent.prc || 0;
+            const lowPctVal = entryLow.prc || 0;
+            if (v0_1_meta) {
+                v0_1_meta.innerHTML = '<span>Range: <span class="positive">+' + entryPct.toFixed(2) + '%</span> / <span class="negative">' + lowPctVal.toFixed(2) + '%</span></span>';
+            }
+
+            const range = data.high - data.low;
+            const volatilityPct = range > 0 && data.low > 0 ? (range / data.low) * 100 : 0;
+            if (v0_1_meta) {
+                v0_1_meta.innerHTML += '<span>Volatility: <strong>' + range.toFixed(2) + '</strong> (' + volatilityPct.toFixed(1) + '%)</span>';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateVariant0_1();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,759 @@
+/* Range Bar Variants — Demo Styles (Dark Theme) */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+    --bg-body: #1a1a1a;
+    --bg-card: #2d2d2d;
+    --bg-section: #2d2d2d;
+    --text-main: #e0e0e0;
+    --text-muted: #888888;
+    --border-color: #404040;
+    --color-profit: #4ade80;
+    --color-loss: #f87171;
+    --color-accent: #60a5fa;
+    --color-accent2: #a78bfa;
+    --shadow: rgba(0,0,0,0.3);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg-body);
+    color: var(--text-main);
+    padding: 2rem;
+    line-height: 1.6;
+}
+
+.demo-page {
+    max-width: 900px;
+    margin: 0 auto;
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px var(--shadow);
+    border: 1px solid var(--border-color);
+}
+
+h1 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    color: var(--text-main);
+}
+
+h2 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    color: var(--text-main);
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 0.5rem;
+}
+
+h3 {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.demo-data {
+    background: var(--bg-body);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    border: 1px solid var(--border-color);
+}
+
+.demo-data p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.variant-section {
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.variant-section:last-child {
+    border-bottom: none;
+}
+
+.variant-box {
+    background: var(--bg-body);
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+/* 9-tier градиент — цвета (темная тема) */
+.color-200plus { background: #166534; }
+.color-100-200 { background: #22c55e; }
+.color-50-100 { background: #86efac; }
+.color-10-50 { background: #bbf7d0; }
+.color-0-10 { background: #6b7280; }
+.color-m10-0 { background: #fca5a5; }
+.color-m50-m10 { background: #ef4444; }
+.color-m100-m50 { background: #dc2626; }
+.color-m100plus { background: #991b1b; }
+
+/* === Variant 1: Segmented Bar === */
+.variant1-bar {
+    position: relative;
+    display: flex;
+    height: 50px;
+    background: #1f1f1f;
+    border-radius: 4px;
+    overflow: visible;
+}
+
+.variant1-bar .segment {
+    height: 100%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.variant1-bar .segment-gray-red {
+    background: #fca5a5;
+    border-radius: 4px 0 0 4px;
+}
+
+.variant1-bar .segment-green {
+    background: #22c55e;
+    height: 60px;
+    margin-top: -5px;
+    border-radius: 2px;
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.6), inset 0 0 0 2px rgba(34, 197, 94, 0.3);
+    z-index: 2;
+}
+
+.variant1-bar .segment-gray-green {
+    background: #bbf7d0;
+    border-radius: 0 4px 4px 0;
+}
+
+.variant1-bar .segment .segment-label {
+    font-size: 9px;
+    font-weight: 600;
+    color: #1a1a1a;
+    text-align: center;
+    line-height: 1.2;
+}
+
+.variant1-bar .segment-green .segment-label {
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.variant1-bar .marker-line {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    z-index: 10;
+}
+
+/* === Variant 0_1: Segmented Bar (height proportional to days) === */
+.variant0-1-bar {
+    position: relative;
+    display: flex;
+    height: 100px;
+    background: #1f1f1f;
+    border-radius: 4px;
+    overflow: hidden;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 0 20px;
+}
+
+.variant0-1-bar .col-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.variant0-1-bar .col-segment {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0;
+}
+
+.variant0-1-bar .col-segment.segment-gray-red {
+    background: #45679D;
+    height: 47.5%;
+}
+
+.variant0-1-bar .col-segment.segment-green {
+    background: #C80E0E;
+    height: 62.5%;
+    box-shadow: 0 0 8px rgba(200, 14, 14, 0.6), inset 0 0 0 2px rgba(200, 14, 14, 0.3);
+}
+
+.variant0-1-bar .col-segment.segment-gray-green {
+    background: #234A3F;
+    height: 0%;
+    min-height: 2px;
+}
+
+.variant0-1-bar .col-segment.segment-dark-red {
+    background: #480700;
+    height: 0%;
+    min-height: 2px;
+}
+
+.variant0-1-bar .col-segment-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: white;
+    text-align: center;
+    line-height: 1.2;
+}
+
+.variant0-1-bar .col-segment.segment-green .col-segment-label {
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.variant0-1-bar .marker-line {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.variant0-1-bar .marker-line .marker-vline {
+    width: 2px;
+    height: 100%;
+    background: currentColor;
+}
+
+.variant0-1-bar .marker-line.entry { color: var(--color-accent2); }
+.variant0-1-bar .marker-line.current { color: var(--color-accent); }
+
+.variant0-1-bar .marker-label-top {
+    font-size: 8px;
+    font-weight: 700;
+    color: inherit;
+}
+
+.variant0-1-bar .marker-label-bottom {
+    font-size: 7px;
+    font-weight: 500;
+    color: inherit;
+}
+
+.variant1-bar .marker-line .marker-vline {
+    width: 2px;
+    height: 100%;
+    background: currentColor;
+}
+
+.variant1-bar .marker-line.entry { color: var(--color-accent2); }
+.variant1-bar .marker-line.current { color: var(--color-accent); }
+
+.variant1-bar .marker-label-top {
+    font-size: 11px;
+    font-weight: 700;
+    color: inherit;
+    position: absolute;
+    top: -18px;
+}
+
+.variant1-bar .marker-label-bottom {
+    font-size: 10px;
+    font-weight: 500;
+    color: inherit;
+    position: absolute;
+    bottom: -18px;
+}
+
+/* === Price labels === */
+.price-labels-inline {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 8px;
+}
+
+.price-labels-inline .low { color: var(--color-loss); }
+.price-labels-inline .high { color: var(--color-profit); }
+
+/* === Variant 2: Vertical Timeline === */
+.variant2-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.variant2-row {
+    position: relative;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.variant2-row .bar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 8px;
+}
+
+.variant2-row .label {
+    position: relative;
+    z-index: 1;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    white-space: nowrap;
+}
+
+/* === Variant 3: Mini-Candles Strip === */
+.variant3-bar {
+    position: relative;
+    display: flex;
+    height: 40px;
+    background: #1f1f1f;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.variant3-bar .mini-bar {
+    height: 100%;
+    width: 1.39%;
+    flex-shrink: 0;
+}
+
+.variant3-bar .marker-line {
+    position: absolute;
+    top: -20px;
+    transform: translateX(-50%);
+    font-size: 9px;
+    font-weight: 600;
+}
+
+.variant3-bar .marker-line.entry { color: var(--color-accent2); }
+.variant3-bar .marker-line.current { color: var(--color-accent); }
+
+.variant3-bar .marker-line::before {
+    content: '';
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    width: 2px;
+    height: 50px;
+    background: currentColor;
+}
+
+/* === Variant 4: Gradient Bar === */
+.variant4-bar {
+    position: relative;
+    display: flex;
+    height: 50px;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.variant4-bar .gradient-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(to right, #dc2626, #fca5a5, #6b7280, #bbf7d0, #22c55e);
+    opacity: 0.7;
+}
+
+.variant4-bar .marker-line {
+    position: absolute;
+    top: -25px;
+    transform: translateX(-50%);
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.variant4-bar .marker-line.entry { color: var(--color-accent2); }
+.variant4-bar .marker-line.current { color: var(--color-accent); }
+
+.variant4-bar .marker-line::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    width: 2px;
+    height: 80px;
+    background: currentColor;
+}
+
+/* === Variant 5: Stacked Horizontal (seaborn style) === */
+.variant5-container {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.variant5-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.variant5-label {
+    width: 60px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.variant5-bar {
+    flex: 1;
+    display: flex;
+    height: 24px;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.variant5-bar .segment {
+    height: 100%;
+    flex-shrink: 0;
+}
+
+/* === Variant 6: Timeline Strip === */
+.variant6-bar {
+    position: relative;
+    height: 60px;
+}
+
+.variant6-bar .timeline-strip {
+    position: relative;
+    height: 40px;
+    background: #1f1f1f;
+    border-radius: 4px;
+    margin-top: 10px;
+}
+
+.variant6-bar .strip-line {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--border-color);
+    transform: translateY(-50%);
+}
+
+.variant6-bar .strip-marker {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.variant6-bar .marker-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid;
+}
+
+.variant6-bar .strip-marker.entry .marker-dot {
+    background: var(--color-accent2);
+    border-color: var(--color-accent2);
+}
+
+.variant6-bar .strip-marker.current .marker-dot {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+}
+
+.variant6-bar .marker-text {
+    position: absolute;
+    top: -30px;
+    font-size: 9px;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.variant6-bar .strip-marker.entry .marker-text { color: var(--color-accent2); }
+.variant6-bar .strip-marker.current .marker-text { color: var(--color-accent); }
+
+/* === Variant 7: Filled Range === */
+.variant7-bar {
+    position: relative;
+    height: 50px;
+}
+
+.variant7-bar .filled-bar {
+    display: flex;
+    height: 40px;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.variant7-bar .filled-segment {
+    height: 100%;
+    flex-shrink: 0;
+}
+
+.variant7-bar .filled-segment.low { background: var(--color-loss); }
+.variant7-bar .filled-segment.entry-to-current { background: var(--color-profit); }
+.variant7-bar .filled-segment.high { background: var(--color-profit); opacity: 0.5; }
+
+.variant7-bar .filled-markers {
+    position: relative;
+    height: 20px;
+    margin-top: 4px;
+}
+
+.variant7-bar .filled-markers .marker-label {
+    position: absolute;
+    transform: translateX(-50%);
+    font-size: 9px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.variant7-bar .filled-markers .marker-label.entry { color: var(--color-accent2); }
+.variant7-bar .filled-markers .marker-label.current { color: var(--color-accent); }
+
+/* === Variant 8: Markers Only === */
+.variant8-bar {
+    position: relative;
+    height: 60px;
+}
+
+.variant8-bar .markers-only {
+    position: relative;
+}
+
+.variant8-bar .markers-bar {
+    position: relative;
+    height: 40px;
+    background: linear-gradient(to right, #ef4444, #fca5a5, #6b7280, #bbf7d0, #22c55e);
+    border-radius: 4px;
+    opacity: 0.3;
+}
+
+.variant8-bar .markers-bar .marker {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.variant8-bar .marker-vline {
+    width: 2px;
+    height: 100%;
+    background: currentColor;
+}
+
+.variant8-bar .markers-bar .marker.entry { color: var(--color-accent2); left: 30%; }
+.variant8-bar .markers-bar .marker.current { color: var(--color-accent); left: 70%; }
+
+.variant8-bar .markers-bar .marker-label {
+    position: absolute;
+    top: -25px;
+    font-size: 9px;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* === Variant 9: Candles Range === */
+.variant9-bar {
+    position: relative;
+    display: flex;
+    height: 40px;
+    background: #1f1f1f;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.variant9-bar .candles-range {
+    display: flex;
+    height: 40px;
+    background: #1f1f1f;
+    border-radius: 4px;
+    overflow: hidden;
+    width: 100%;
+}
+
+.variant9-bar .candles-range .candle-bar {
+    height: 100%;
+    width: 1.39%;
+    flex-shrink: 0;
+}
+
+/* === Variant 10: Numeric Only === */
+.variant10-numeric {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.variant10-numeric .numeric-only {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 1rem;
+    background: var(--bg-body);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.variant10-numeric .numeric-row {
+    display: flex;
+    gap: 16px;
+}
+
+.variant10-numeric .numeric-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.variant10-numeric .numeric-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.variant10-numeric .numeric-value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.variant10-numeric .numeric-value small {
+    font-size: 0.75rem;
+    font-weight: 400;
+}
+
+.variant10-numeric .numeric-value.positive { color: var(--color-profit); }
+.variant10-numeric .numeric-value.negative { color: var(--color-loss); }
+
+/* === Current (исходный) === */
+.current-bar {
+    position: relative;
+    height: 50px;
+    background: #1f1f1f;
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+}
+
+.current-bar .bar-bg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background: linear-gradient(to right, #ef4444, #fca5a5, #6b7280, #bbf7d0, #22c55e);
+    border-radius: 4px;
+    width: 100%;
+    opacity: 0.3;
+}
+
+.current-bar .marker {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 3px;
+    height: 40px;
+    border-radius: 2px;
+}
+
+.current-bar .marker.entry {
+    background: var(--color-accent2);
+    left: 30%;
+}
+
+.current-bar .marker.current {
+    background: var(--color-accent);
+    left: 70%;
+}
+
+.current-bar .marker-label {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.current-bar .marker.entry .marker-label { color: var(--color-accent2); }
+.current-bar .marker.current .marker-label { color: var(--color-accent); }
+
+/* === Meta info === */
+.meta-info {
+    display: flex;
+    gap: 16px;
+    margin-top: 1rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.meta-info span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.meta-info .positive { color: var(--color-profit); }
+.meta-info .negative { color: var(--color-loss); }
+
+/* === Info Box === */
+.info-box {
+    background: rgba(96, 165, 250, 0.1);
+    border: 1px solid rgba(96, 165, 250, 0.3);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    color: var(--color-accent);
+}
+
+.info-box b {
+    color: var(--text-main);
+}
+

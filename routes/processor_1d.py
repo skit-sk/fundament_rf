@@ -166,6 +166,103 @@ def _build_chart_data(days):
     return [{"date": d['date'], "deviation_pct": d['deviation']['from_entry_pct'], "profitable": d['profitable']} for d in days]
 
 
+def _calculate_ranges(days_data, entry_price, current_price, low_price, high_price):
+    if not days_data:
+        return {}
+
+    roe_list = [d['roe_pct'] for d in days_data]
+
+    def calc_pct(price1, price2):
+        return round(price2 - price1, 6)
+
+    def calc_prc(price1, price2):
+        if price1 == 0:
+            return 0
+        return round(((price2 - price1) / price1) * 100, 2)
+
+    def calc_days_in_range(price_key):
+        if price_key == 'entry_current':
+            target_low, target_high = entry_price, current_price
+        elif price_key == 'entry_low':
+            target_low, target_high = low_price, entry_price
+        elif price_key == 'entry_high':
+            target_low, target_high = entry_price, high_price
+        elif price_key == 'current_low':
+            target_low, target_high = low_price, current_price
+        elif price_key == 'current_high':
+            target_low, target_high = current_price, high_price
+        elif price_key == 'low_high':
+            target_low, target_high = low_price, high_price
+        else:
+            return 0
+
+        count = 0
+        for d in days_data:
+            close = d['ohlc']['close']
+            if target_low <= close <= target_high:
+                count += 1
+        return count
+
+    def calc_shortest_days(start_idx, target_price, direction):
+        if start_idx >= len(days_data):
+            return 0
+
+        for i in range(start_idx + 1, len(days_data)):
+            curr_price = days_data[i]['ohlc']['close']
+            if direction > 0:
+                if curr_price >= target_price:
+                    return i - start_idx
+            else:
+                if curr_price <= target_price:
+                    return i - start_idx
+
+        return 0
+
+    entry_idx = 0
+    current_idx = len(days_data) - 1
+
+    ranges = {
+        "entry_current": {
+            "pct": calc_pct(entry_price, current_price),
+            "prc": calc_prc(entry_price, current_price),
+            "days": calc_days_in_range('entry_current'),
+            "shortest_days": calc_shortest_days(entry_idx, current_price, 1)
+        },
+        "entry_low": {
+            "pct": calc_pct(entry_price, low_price),
+            "prc": calc_prc(entry_price, low_price),
+            "days": calc_days_in_range('entry_low'),
+            "shortest_days": calc_shortest_days(entry_idx, low_price, -1)
+        },
+        "entry_high": {
+            "pct": calc_pct(entry_price, high_price),
+            "prc": calc_prc(entry_price, high_price),
+            "days": calc_days_in_range('entry_high'),
+            "shortest_days": calc_shortest_days(entry_idx, high_price, 1)
+        },
+        "current_low": {
+            "pct": calc_pct(current_price, low_price),
+            "prc": calc_prc(current_price, low_price),
+            "days": calc_days_in_range('current_low'),
+            "shortest_days": calc_shortest_days(current_idx, low_price, -1)
+        },
+        "current_high": {
+            "pct": calc_pct(current_price, high_price),
+            "prc": calc_prc(current_price, high_price),
+            "days": calc_days_in_range('current_high'),
+            "shortest_days": calc_shortest_days(current_idx, high_price, 1)
+        },
+        "low_high": {
+            "pct": calc_pct(low_price, high_price),
+            "prc": calc_prc(low_price, high_price),
+            "days": calc_days_in_range('low_high'),
+            "shortest_days": calc_shortest_days(entry_idx, high_price, 1)
+        }
+    }
+
+    return ranges
+
+
 def _process_object(obj_id, operation='create'):
     timing = {
         "operation": operation,
@@ -173,6 +270,8 @@ def _process_object(obj_id, operation='create'):
         "timestamp": datetime.now().isoformat(),
         "duration_ms": {}
     }
+
+    symbol = 'UNKNOWN'
 
     try:
         obj = storage.load(obj_id)
@@ -218,10 +317,25 @@ def _process_object(obj_id, operation='create'):
         summary = _calculate_summary(days_data, leverage, volume)
         chart_data = _build_chart_data(days_data)
 
+        last_day = days_data[-1] if days_data else None
+        current_price = last_day['ohlc']['close'] if last_day else entry_price
+
+        max_day = max(days_data, key=lambda x: x['ohlc']['high']) if days_data else None
+        min_day = min(days_data, key=lambda x: x['ohlc']['low']) if days_data else None
+        high_price = max_day['ohlc']['high'] if max_day else entry_price
+        low_price = min_day['ohlc']['low'] if min_day else entry_price
+
+        ranges = _calculate_ranges(days_data, entry_price, current_price, low_price, high_price)
+
+        entry_datetime = f"{entry_date}T00:00:00"
+        current_datetime = last_day['date'] + "T00:00:00" if last_day else None
+        low_datetime = min_day['date'] + "T00:00:00" if min_day else None
+        high_datetime = max_day['date'] + "T00:00:00" if max_day else None
+
         writing_start = int(time.time() * 1000)
 
         raw_data = {
-            "id": f"RAW_{obj_id}",
+            "id": f"{obj_id}_RAW",
             "parent_id": obj_id,
             "symbol": symbol.upper(),
             "granularity": "1day",
@@ -232,10 +346,10 @@ def _process_object(obj_id, operation='create'):
             "candles": raw_candles,
             "total_candles": len(raw_candles)
         }
-        storage.save_raw(obj_id, raw_data)
+        storage.save_raw(symbol, obj_id, raw_data)
 
         d1_data = {
-            "id": f"1D_{obj_id}",
+            "id": f"{obj_id}_1D",
             "parent_id": obj_id,
             "symbol": symbol.upper(),
             "entry_price": entry_price,
@@ -250,7 +364,16 @@ def _process_object(obj_id, operation='create'):
             "chart_data": chart_data,
             "summary": summary
         }
-        storage.save_1d(obj_id, d1_data)
+        storage.save_1d(symbol, obj_id, d1_data)
+
+        obj.data['entry_datetime'] = entry_datetime
+        obj.data['current_datetime'] = current_datetime
+        obj.data['low_datetime'] = low_datetime
+        obj.data['high_datetime'] = high_datetime
+        obj.data['ranges'] = ranges
+        obj.data['chart_updated'] = datetime.now().strftime("%Y-%m-%d %H:%M")
+        storage.save_to_card(obj)
+        storage.save(obj)
 
         writing_end = int(time.time() * 1000)
 
@@ -277,8 +400,9 @@ def _process_object(obj_id, operation='create'):
     except Exception as e:
         timing['result'] = {"status": "failed", "error": str(e)}
         try:
-            storage.save_1d(obj_id, {"status": "failed", "error": str(e)})
-        except:
+            d1_error = {"status": "failed", "error": str(e)}
+            storage.save_1d(symbol, obj_id, d1_error)
+        except Exception:
             pass
 
     metrics_storage.add_record(timing)
@@ -295,10 +419,18 @@ def _sync_object(obj_id):
 
     try:
         obj = storage.load(obj_id)
+        symbol = obj.data.get('emoji_entry', {}).get('symbol', 'UNKNOWN')
+
+        if obj.data.get('ranges'):
+            timing['duration_ms'] = {"total_ms": 0}
+            timing['result'] = {"status": "skipped", "reason": "ranges already exist"}
+            metrics_storage.add_record(timing)
+            return timing
+
         chart_updated = obj.data.get('chart_updated')
 
-        if storage.exists_1d(obj_id):
-            d1_data = storage.load_1d(obj_id)
+        if storage.exists_1d(symbol, obj_id):
+            d1_data = storage.load_1d(symbol, obj_id)
             d1_updated = d1_data.get('updated_at')
 
             if chart_updated and d1_updated and chart_updated == d1_updated:
@@ -347,10 +479,11 @@ def status(obj_id):
     status_data = {"obj_id": obj_id}
     try:
         obj = storage.load(obj_id)
-        status_data['d1_exists'] = storage.exists_1d(obj_id)
-        status_data['raw_exists'] = storage.exists_raw(obj_id)
-        if storage.exists_1d(obj_id):
-            d1 = storage.load_1d(obj_id)
+        symbol = obj.data.get('emoji_entry', {}).get('symbol', 'UNKNOWN')
+        status_data['d1_exists'] = storage.exists_1d(symbol, obj_id)
+        status_data['raw_exists'] = storage.exists_raw(symbol, obj_id)
+        if storage.exists_1d(symbol, obj_id):
+            d1 = storage.load_1d(symbol, obj_id)
             status_data['d1_status'] = d1.get('status', 'unknown')
             status_data['d1_updated'] = d1.get('updated_at')
         status_data['main_updated'] = obj.data.get('chart_updated')
@@ -364,7 +497,9 @@ def status(obj_id):
 @bp.route('/data/<obj_id>', methods=['GET'])
 def get_data(obj_id):
     try:
-        data = storage.load_1d(obj_id)
+        obj = storage.load(obj_id)
+        symbol = obj.data.get('emoji_entry', {}).get('symbol', 'UNKNOWN')
+        data = storage.load_1d(symbol, obj_id)
         return jsonify(data)
     except FileNotFoundError:
         return jsonify({"error": "1D data not found"}), 404
@@ -373,7 +508,9 @@ def get_data(obj_id):
 @bp.route('/raw/<obj_id>', methods=['GET'])
 def get_raw(obj_id):
     try:
-        data = storage.load_raw(obj_id)
+        obj = storage.load(obj_id)
+        symbol = obj.data.get('emoji_entry', {}).get('symbol', 'UNKNOWN')
+        data = storage.load_raw(symbol, obj_id)
         return jsonify(data)
     except FileNotFoundError:
         return jsonify({"error": "RAW data not found"}), 404
@@ -382,7 +519,9 @@ def get_raw(obj_id):
 @bp.route('/delete/<obj_id>', methods=['DELETE'])
 def delete_1d_raw(obj_id):
     try:
-        storage.delete_1d_raw(obj_id)
+        obj = storage.load(obj_id)
+        symbol = obj.data.get('emoji_entry', {}).get('symbol', 'UNKNOWN')
+        storage.delete_1d_raw(symbol, obj_id)
         return jsonify({"ok": True})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -426,7 +565,9 @@ def metrics_clear():
 def get_chart_data(obj_id):
     """Возвращает days для OHLC графика"""
     try:
-        data = storage.load_1d(obj_id)
+        obj = storage.load(obj_id)
+        symbol = obj.data.get('emoji_entry', {}).get('symbol', 'UNKNOWN')
+        data = storage.load_1d(symbol, obj_id)
         return jsonify({
             'days': data.get('days', []),
             'symbol': data.get('symbol'),

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Fundament RF{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_head %}{% endblock %}
     <script>
         if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
     </script>
@@ -17,7 +18,9 @@
     <nav style="margin: 0 0 1rem; padding: 0.5rem; border-bottom: 1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
         <ul style="list-style:none; padding:0; margin:0; display:flex; gap:1rem;">
             <li><a href="{{ url_for('web.index') }}">Главная</a></li>
+            <li><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
             <li><a href="{{ url_for('graphics.all_charts') }}">Все графики</a></li>
+            <li><a href="{{ url_for('processor_1d.metrics_page') }}">Метрики</a></li>
         </ul>
         <button onclick="toggleTheme()" style="background:var(--bg-card); border:1px solid var(--border-color); color:var(--text-main); padding:4px 8px; border-radius:4px; cursor:pointer;">🌙</button>
     </nav>
